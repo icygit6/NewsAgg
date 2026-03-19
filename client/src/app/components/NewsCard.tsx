@@ -82,7 +82,7 @@ export function NewsCard({ article, index }: NewsCardProps) {
             {/* Footer */}
             <div className={`flex flex-col gap-1 pt-3 border-t text-xs ${isDark ? 'border-slate-700 text-slate-400' : 'border-gray-100 text-gray-400'}`}>
               <div className="flex items-center gap-1">
-                <span className={`font-semibold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>{t.source}:</span>
+                <span className={`font-semibold ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>{t.source}:</span>
                 <span className="truncate">{article.source.name}</span>
               </div>
               <div className="flex items-center gap-1">
