@@ -9,15 +9,26 @@ export function Home() {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    let animationFrameId: number;
+    const handleScroll = () => {
+      // Use requestAnimationFrame to prevent excessive updates
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+      });
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(animationFrameId);
+    };
   }, []);
 
   return (
     <div>
       {/* Hero Carousel - sticky below header */}
-      <div className="sticky top-16 z-20">
+      <div className="sticky top-16 z-20 will-change-transform">
         <HeroCarousel scrollY={scrollY} />
       </div>
 

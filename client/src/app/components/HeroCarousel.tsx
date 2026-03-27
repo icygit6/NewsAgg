@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
@@ -34,7 +34,9 @@ export function HeroCarousel({ scrollY }: HeroCarouselProps) {
   const [loading, setLoading] = useState(true);
 
   const isCompact = scrollY > 280;
-  const heroHeight = isCompact ? 100 : Math.max(420 - scrollY * 0.5, 100);
+  const heroHeight = useMemo(() => {
+    return isCompact ? 100 : Math.max(420 - scrollY * 0.5, 100);
+  }, [isCompact, scrollY]);
 
   useEffect(() => {
     const fetchHeadlines = async () => {
@@ -125,7 +127,7 @@ export function HeroCarousel({ scrollY }: HeroCarouselProps) {
           className="absolute bottom-0 left-0 right-0 p-6 z-10"
         >
           {!isCompact ? (
-            <Link to={`/article/${encodeURIComponent(article.url)}`} className="block group">
+            <Link to={`/article/${encodeURIComponent(article.url)}`} state={{ article, category: 'general' }} className="block group">
               <div className="flex items-center gap-2 mb-2">
                 <SentimentBadge sentiment="neutral" />
                 <span className="text-white/70 text-xs">{article.source.name}</span>
@@ -142,7 +144,7 @@ export function HeroCarousel({ scrollY }: HeroCarouselProps) {
               </div>
             </Link>
           ) : (
-            <Link to={`/article/${encodeURIComponent(article.url)}`} className="flex items-center gap-3 group">
+            <Link to={`/article/${encodeURIComponent(article.url)}`} state={{ article, category: 'general' }} className="flex items-center gap-3 group">
               <div className="flex items-center gap-2 min-w-0">
                 <SentimentBadge sentiment="neutral" />
                 <span className="text-white font-semibold text-sm truncate group-hover:text-cyan-300 transition-colors">{article.title}</span>

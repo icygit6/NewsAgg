@@ -118,7 +118,12 @@ export function NewsGrid() {
       <AnimatePresence mode="wait">
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {currentArticles.map((article, i) => (
-            <NewsCard key={`${article.url}-${page}`} article={article} index={i} />
+            <NewsCard
+              key={`${article.url}-${page}`}
+              article={article}
+              index={i}
+              category={selectedCategory !== 'all' ? selectedCategory : undefined}
+            />
           ))}
         </div>
       </AnimatePresence>

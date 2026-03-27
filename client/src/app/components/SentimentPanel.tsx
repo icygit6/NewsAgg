@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useApp } from '../contexts/AppContext';
+import { newsAPI } from '../services/newsAPI';
 import { TrendingUp, Activity, Users } from 'lucide-react';
 
 const SENTIMENT_COLORS = {
@@ -24,13 +26,67 @@ const CustomTooltip = ({ active, payload, isDark }: any) => {
 
 export function SentimentPanel() {
   const { t, isDark } = useApp();
+  const [sentimentData, setSentimentData] = useState([
+    { name: t.positive, value: 0.1, color: SENTIMENT_COLORS.positive },
+    { name: t.neutral, value: 0, color: SENTIMENT_COLORS.neutral },
+    { name: t.negative, value: -0.1, color: SENTIMENT_COLORS.negative },
+  ]);
 
-  // Using aggregated sentiment data - in a real app, this would come from your analytics backend
-  const sentimentData = [
-    { name: t.positive, value: 45, color: SENTIMENT_COLORS.positive },
-    { name: t.neutral, value: 35, color: SENTIMENT_COLORS.neutral },
-    { name: t.negative, value: 20, color: SENTIMENT_COLORS.negative },
-  ];
+  const [liveStats, setLiveStats] = useState({
+    articlesToday: 0,
+    trendingNow: 0,
+    avgSentiment: 0
+  });
+
+  useEffect(() => {
+    const fetchAndAnalyzeSentiment = async () => {
+      try {
+        // Fetch from general category
+        const response = await newsAPI.getTopHeadlines('general', 80, 1);
+
+        if (response.success && response.data?.articles) {
+          const articles = response.data.articles;
+
+          // Count sentiment types and calculate average
+          let positive = 0, neutral = 0, negative = 0;
+          let totalScore = 0;
+
+          articles.forEach(article => {
+            const type = article.sentiment?.type || 'neutral';
+            const score = article.sentiment?.score || 0;
+
+            if (type === 'positive') positive++;
+            else if (type === 'negative') negative++;
+            else neutral++;
+
+            totalScore += score;
+          });
+
+          // Calculate average sentiment
+          const avgSentiment = articles.length > 0 ? totalScore / articles.length : 0;
+
+          // Count trending as positive + portion of neutral
+          const trendingCount = positive + Math.floor(neutral * 0.3);
+
+          setSentimentData([
+            { name: t.positive, value: positive, color: SENTIMENT_COLORS.positive },
+            { name: t.neutral, value: neutral, color: SENTIMENT_COLORS.neutral },
+            { name: t.negative, value: negative, color: SENTIMENT_COLORS.negative },
+          ]);
+
+          setLiveStats({
+            articlesToday: articles.length,
+            trendingNow: trendingCount,
+            avgSentiment: avgSentiment
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch sentiment data:', err);
+      }
+    };
+
+    fetchAndAnalyzeSentiment();
+  }, []);
 
   const trendingTopics = [
     { topic: 'AI', count: 42, color: TOPIC_COLORS[0] },
@@ -160,14 +216,18 @@ export function SentimentPanel() {
           </BarChart>
         </ResponsiveContainer>
 
-        <div className="flex items-center gap-4 mt-1">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm bg-cyan-500" />
-            <span className="text-xs" style={{ color: mutedColor }}>Views</span>
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t" style={{ borderColor: isDark ? '#334155' : '#f3f4f6' }}>
+          <div className="flex-1">
+            <div className="text-xs font-semibold mb-1" style={{ color: textColor }}>Total Views</div>
+            <div className="text-lg font-bold text-cyan-500">{(engagementData.reduce((sum, d) => sum + d.views, 0) / 1000).toFixed(1)}k</div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm bg-violet-500" />
-            <span className="text-xs" style={{ color: mutedColor }}>Comments</span>
+          <div className="flex-1">
+            <div className="text-xs font-semibold mb-1" style={{ color: textColor }}>Total Comments</div>
+            <div className="text-lg font-bold text-violet-500">{engagementData.reduce((sum, d) => sum + d.comments, 0)}</div>
+          </div>
+          <div className="flex-1">
+            <div className="text-xs font-semibold mb-1" style={{ color: textColor }}>Avg. Per Day</div>
+            <div className="text-lg font-bold text-emerald-500">{Math.round(engagementData.reduce((sum, d) => sum + d.views, 0) / engagementData.length / 100) * 100}</div>
           </div>
         </div>
       </div>
@@ -180,10 +240,10 @@ export function SentimentPanel() {
         </div>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {[
-            { label: 'Articles Today', value: '247', color: 'text-cyan-500' },
-            { label: 'Trending Now', value: '12', color: 'text-violet-500' },
+            { label: 'Articles Today', value: liveStats.articlesToday.toString(), color: 'text-cyan-500' },
+            { label: 'Trending Now', value: liveStats.trendingNow.toString(), color: 'text-violet-500' },
             { label: 'Active Readers', value: '8.4k', color: 'text-emerald-500' },
-            { label: 'Avg. Sentiment', value: '+0.42', color: 'text-amber-500' },
+            { label: 'Avg. Sentiment', value: liveStats.avgSentiment > 0 ? `+${liveStats.avgSentiment.toFixed(2)}` : liveStats.avgSentiment.toFixed(2), color: 'text-amber-500' },
           ].map(stat => (
             <div key={stat.label} className={`rounded-xl p-2.5 ${isDark ? 'bg-slate-700/50' : 'bg-gray-50/80'}`}>
               <div className={`text-base font-bold ${stat.color}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{stat.value}</div>

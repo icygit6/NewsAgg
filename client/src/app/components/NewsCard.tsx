@@ -23,20 +23,39 @@ const CATEGORY_COLORS: Record<string, string> = {
 interface NewsCardProps {
   article: NewsArticle;
   index: number;
+  category?: string;
 }
 
-export function NewsCard({ article, index }: NewsCardProps) {
+// Function to infer category from article source or content
+function inferCategory(article: NewsArticle, passedCategory?: string): string {
+  if (passedCategory) return passedCategory;
+
+  const source = article.source?.name?.toLowerCase() || '';
+  const title = (article.title || '').toLowerCase();
+
+  // Infer from source
+  if (source.includes('techcrunch') || source.includes('wired') || source.includes('ars technica')) return 'technology';
+  if (source.includes('business') || source.includes('bloomberg') || source.includes('financial')) return 'business';
+  if (source.includes('espn') || source.includes('sports')) return 'sports';
+  if (source.includes('health') || source.includes('medical')) return 'health';
+  if (source.includes('entertainment') || source.includes('hollywood')) return 'entertainment';
+  if (source.includes('science') || source.includes('space')) return 'science';
+
+  return 'general';
+}
+
+export function NewsCard({ article, index, category: passedCategory }: NewsCardProps) {
   const { t, isDark } = useApp();
 
-  // Generate a simple ID from the URL for linking
+  // Generate a unique ID from the URL for linking
   const articleId = encodeURIComponent(article.url || article.title);
 
-  // Default to neutral sentiment
-  const sentiment = 'neutral' as const;
+  // Use sentiment from article data, default to neutral
+  const sentiment = (article.sentiment?.type || 'neutral') as keyof typeof SENTIMENT_STYLE;
   const sentStyle = SENTIMENT_STYLE[sentiment];
 
-  // Default to general category
-  const category = 'general';
+  // Get category (from props or infer from article)
+  const category = inferCategory(article, passedCategory);
 
   return (
     <motion.div
@@ -46,7 +65,11 @@ export function NewsCard({ article, index }: NewsCardProps) {
       whileHover={{ y: -4 }}
       className="group"
     >
-      <Link to={`/article/${articleId}`} className="block h-full">
+      <Link
+        to={`/article/${articleId}`}
+        state={{ article, category }}
+        className="block h-full"
+      >
         <div className={`h-full rounded-2xl border overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col ${isDark ? 'bg-slate-800/80 border-slate-700/50 backdrop-blur-md hover:border-slate-500' : 'bg-white/85 border-white/60 backdrop-blur-md hover:border-cyan-200'}`}>
           {/* Image */}
           <div className="relative overflow-hidden h-48 flex-shrink-0">

@@ -5,12 +5,14 @@ const cors = require('cors');
 const app = express();
 const axios = require('axios');
 const mongoose = require('mongoose');
+const Sentiment = require('sentiment');
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const API_KEY = process.env.API_KEY;
+const sentiment = new Sentiment();
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/newsagg')
@@ -39,27 +41,85 @@ const viewSchema = new mongoose.Schema({
 
 const View = mongoose.model('View', viewSchema);
 
+// Function to analyze sentiment
+function analyzeSentiment(text) {
+    try {
+        // Ensure text is a string and not empty
+        if (!text || typeof text !== 'string') {
+            return {
+                score: 0,
+                type: 'neutral',
+                comparative: 0
+            };
+        }
+
+        const result = sentiment.analyze(text);
+
+        let type = 'neutral';
+        if (result.score > 0.5) type = 'positive';
+        else if (result.score < -0.5) type = 'negative';
+
+        return {
+            score: result.score,
+            type: type,
+            comparative: result.comparative
+        };
+    } catch (err) {
+        console.error('Sentiment analysis error:', err);
+        return {
+            score: 0,
+            type: 'neutral',
+            comparative: 0
+        };
+    }
+}
+
 // Function to fetch news from the API
 function fetchNews(url, res) {
     axios.get(url)
         .then(response => {
-            if (response.data.totalResults > 0) {
-                res.json({
-                    status: 200,
-                    success: true,
-                    message: 'News fetched successfully',
-                    data: response.data
-                });
-            } else {
-                res.json({
-                    status: 200,
-                    success: true,
-                    message: 'No more results',
+            try {
+                if (response.data.totalResults > 0) {
+                    // Add sentiment analysis to each article
+                    const articlesWithSentiment = response.data.articles.map(article => {
+                        const textToAnalyze = `${article.title || ''} ${article.description || ''}`;
+                        const sentimentResult = analyzeSentiment(textToAnalyze);
+
+                        return {
+                            ...article,
+                            sentiment: sentimentResult
+                        };
+                    });
+
+                    res.json({
+                        status: 200,
+                        success: true,
+                        message: 'News fetched successfully',
+                        data: {
+                            ...response.data,
+                            articles: articlesWithSentiment
+                        }
+                    });
+                } else {
+                    res.json({
+                        status: 200,
+                        success: true,
+                        message: 'No more results',
+                    });
+                }
+            } catch (processingError) {
+                console.error('Error processing articles:', processingError);
+                res.status(500).json({
+                    status: 500,
+                    success: false,
+                    message: 'Error processing news data',
+                    error: processingError.message
                 });
             }
         })
         .catch(error => {
-            res.json({
+            console.error('API fetch error:', error.message);
+            res.status(500).json({
                 status: 500,
                 success: false,
                 message: 'Error fetching news from the API',

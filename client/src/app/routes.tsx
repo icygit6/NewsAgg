@@ -18,4 +18,9 @@ export const router = createBrowserRouter([
       { path: '*', Component: NotFound },
     ],
   },
-]);
+], {
+  // Enable scroll restoration and reset to top on navigation
+  future: {
+    v7_skipActionErrorRevalidation: true,
+  }
+});

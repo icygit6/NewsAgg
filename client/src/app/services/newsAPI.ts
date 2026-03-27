@@ -12,6 +12,11 @@ export interface NewsArticle {
     urlToImage: string | null;
     publishedAt: string;
     content: string | null;
+    sentiment?: {
+        score: number;
+        type: 'positive' | 'neutral' | 'negative';
+        comparative: number;
+    };
 }
 
 export interface NewsApiResponse {

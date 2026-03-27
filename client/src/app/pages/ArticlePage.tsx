@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router';
+import { useParams, Link, useSearchParams, useLocation } from 'react-router';
 import { motion } from 'motion/react';
 import { ArrowLeft, MessageSquare, CornerDownRight } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
@@ -43,29 +43,29 @@ function CommentItem({ comment_text, isDark, depth = 0 }: { comment_text: string
 
 export function ArticlePage() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { t, isDark } = useApp();
   const [comment, setComment] = useState('');
   const [article, setArticle] = useState<NewsArticle | null>(null);
+  const [category, setCategory] = useState<string>('general');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Since the API doesn't provide a way to fetch a single article by ID,
-    // we'll try to decode the URL from the parameter
-    if (id) {
-      try {
-        const decodedUrl = decodeURIComponent(id);
-        // In a real app, you'd have an endpoint to fetch article by URL
-        // For now, we'll show a message that the article couldn't be loaded from API
-        setLoading(false);
-        setError('Article loading from API not fully implemented. Try viewing articles from the homepage.');
-      } catch (err) {
-        setLoading(false);
-        setError('Invalid article reference');
-      }
+    // Get article from location state
+    const articleFromState = (location.state as any)?.article;
+    const categoryFromState = (location.state as any)?.category;
+
+    if (articleFromState) {
+      setArticle(articleFromState);
+      setCategory(categoryFromState || 'general');
+      setLoading(false);
+      setError(null);
+    } else {
+      setLoading(false);
+      setError('Article not available. Please navigate from the news feed.');
     }
-  }, [id]);
+  }, [id, location]);
 
   const panelBase = isDark
     ? 'bg-slate-800/80 border-slate-700/50 backdrop-blur-md'
@@ -245,6 +245,10 @@ export function ArticlePage() {
               </h3>
 
               <div className="space-y-3 text-sm">
+                <div>
+                  <span className={`font-semibold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>Category:</span>
+                  <div><span className="inline-block mt-1 px-2.5 py-1 rounded-full bg-cyan-500 text-white text-xs font-semibold uppercase">{category}</span></div>
+                </div>
                 <div>
                   <span className={`font-semibold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>{t.source}:</span>
                   <div className={isDark ? 'text-slate-300' : 'text-gray-700'}>{article.source.name}</div>
