@@ -31,6 +31,7 @@ import textstat
 import pandas as pd
 
 SERVER_ROOT = Path(__file__).resolve().parents[1]
+ENV_PATH = SERVER_ROOT / ".env"
 HF_ENV_PATH = SERVER_ROOT / ".hf.env"
 
 
@@ -47,6 +48,7 @@ def load_env_file(env_path: Path) -> None:
         os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
+load_env_file(ENV_PATH)
 load_env_file(HF_ENV_PATH)
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -1243,5 +1245,8 @@ def pg_insert_all(dsn: str, articles: list[dict]):
 
 
 # ── Uncomment to use: ──────────────────────────────────────────────
-NEON_DSN = "postgresql://user:password@host:port/dbname"
-pg_insert_all(NEON_DSN, final_data)
+NEON_DSN = os.getenv("NEON_DSN")
+if NEON_DSN:
+    pg_insert_all(NEON_DSN, final_data)
+else:
+    print("PostgreSQL skipped: NEON_DSN is not set.")

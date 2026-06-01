@@ -1,12 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { NewsGrid } from '../components/NewsGrid';
 import { SentimentPanel } from '../components/SentimentPanel';
-import { useApp } from '../contexts/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
 export function Home() {
-  const { isDark } = useApp();
   const newsColumnRef = useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
 

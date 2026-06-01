@@ -32,6 +32,12 @@ from pathlib      import Path
 from typing       import Optional
 from urllib.parse import urljoin, urlparse
 
+try:
+    from dotenv import find_dotenv, load_dotenv
+except Exception:
+    find_dotenv = None
+    load_dotenv = None
+
 import requests as _req
 from bs4          import BeautifulSoup
 from newspaper    import Article, Config
@@ -52,6 +58,16 @@ nltk.download("punkt_tab", quiet=True)
 nltk.download("stopwords", quiet=True)
 
 logging.basicConfig(level=logging.WARNING)
+
+if load_dotenv:
+    load_dotenv(find_dotenv() if find_dotenv else None)
+    try:
+        server_root = Path(__file__).resolve().parents[1]
+    except NameError:
+        server_root = None
+    if server_root:
+        load_dotenv(server_root / ".env", override=False)
+        load_dotenv(server_root / ".hf.env", override=False)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CELL 3 — Credentials

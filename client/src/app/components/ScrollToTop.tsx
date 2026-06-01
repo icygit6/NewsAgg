@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 import { useLocation } from 'react-router';
-import { useApp } from '../contexts/AppContext';
 
 export function ScrollToTop() {
-  const { isDark } = useApp();
   const { pathname } = useLocation();
   const [show, setShow] = useState(false);
 

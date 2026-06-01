@@ -160,7 +160,9 @@ interface RawNewsData {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const API_BASE_URL = 'http://localhost:3000/api/news-from-db';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = `${BASE_URL}/api/news-from-db`;
+const STORE_CACHE_TTL_MS = 30_000;
 
 // ─── Internal maps ────────────────────────────────────────────────────────────
 
@@ -536,6 +538,7 @@ interface NormalizedStore {
 }
 
 let storePromise: Promise<NormalizedStore> | null = null;
+let storeFetchedAt = 0;
 
 const buildStore = (raw: RawNewsData): NormalizedStore => {
   const articles = (raw.articles ?? [])
@@ -594,27 +597,38 @@ const buildStore = (raw: RawNewsData): NormalizedStore => {
  * Call `invalidateCache()` to force a fresh fetch on the next access.
  */
 const getStore = (): Promise<NormalizedStore> => {
-  if (!storePromise) {
-    storePromise = fetch(API_BASE_URL)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        return res.json() as Promise<RawNewsData>;
-      })
-      .then(buildStore)
-      .catch((err) => {
-        // Clear cache so the next call retries instead of returning the failed promise
-        storePromise = null;
-        throw err;
-      });
+  const now = Date.now();
+  if (storePromise && now - storeFetchedAt <= STORE_CACHE_TTL_MS) {
+    return storePromise;
   }
-  return storePromise;
+
+  const requestUrl = `${API_BASE_URL}?_=${now}`;
+  storeFetchedAt = now;
+  const requestPromise = fetch(requestUrl, {
+    cache: 'no-store',
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      return res.json() as Promise<RawNewsData>;
+    })
+    .then(buildStore)
+    .catch((err) => {
+      // Clear cache so the next call retries instead of returning the failed promise
+      storePromise = null;
+      storeFetchedAt = 0;
+      throw err;
+    });
+
+  storePromise = requestPromise;
+  return requestPromise;
 };
 
 /** Force a fresh fetch on the next data access (e.g. call after a write). */
 export const invalidateCache = (): void => {
   storePromise = null;
+  storeFetchedAt = 0;
 };
 
 // ─── Internal filter helpers ──────────────────────────────────────────────────

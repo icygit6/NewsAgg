@@ -15,6 +15,10 @@ RUN npm install
 # 複製其餘所有原始碼
 COPY . .
 
+# Inject API base URL at build time for Vite
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # 執行編譯 (產出 dist 資料夾)
 RUN npm run build
 

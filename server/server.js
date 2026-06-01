@@ -163,6 +163,13 @@ function fetchNews(url, res) {
 // PostgreSQL cloud dataset endpoint
 app.get('/api/news-from-db', async (req, res) => {
     try {
+        res.set({
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+            'Surrogate-Control': 'no-store',
+        });
+
         const category = req.query.category;
 
         let queryText = `
@@ -186,7 +193,13 @@ app.get('/api/news-from-db', async (req, res) => {
             queryParams.push(category);
         }
 
-        queryText += ' ORDER BY a.published_at DESC LIMIT 400';
+        queryText += `
+            ORDER BY
+                COALESCE(a.published_at, a.scraped_at, '-infinity'::timestamptz) DESC,
+                COALESCE(a.scraped_at, '-infinity'::timestamptz) DESC,
+                a.id DESC
+            LIMIT 400
+        `;
 
         const result = await pool.query(queryText, queryParams);
 
