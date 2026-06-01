@@ -1,5 +1,12 @@
 @custom-variant dark (&:is(.dark *));
 
+/* Font utilities (Tailwind v4 registers `font-<name>` from the --font-* namespace).
+   Inter + Poppins are loaded in index.html; `font-sans` (Inter) is the body default. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-poppins: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
   --font-size: 16px;
   --background: #ffffff;

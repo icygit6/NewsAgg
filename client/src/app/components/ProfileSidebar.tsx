@@ -134,7 +134,7 @@ export function ProfileSidebar() {
           >
             {/* Header */}
             <div className={`flex items-center justify-between p-5 border-b ${isDark ? 'border-slate-700' : 'border-gray-100'}`}>
-              <span className="text-lg font-bold bg-gradient-to-r from-cyan-500 to-pink-500 bg-clip-text text-transparent" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              <span className="font-poppins text-lg font-bold bg-gradient-to-r from-cyan-500 to-pink-500 bg-clip-text text-transparent">
                 NewsAgg
               </span>
               <button
@@ -157,7 +157,7 @@ export function ProfileSidebar() {
                     />
                   </div>
                   <div>
-                    <p className={`font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>{user.username}</p>
+                    <p className={`font-poppins font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{user.username}</p>
                     <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{user.email}</p>
                     <div className="flex items-center gap-1.5 mt-1">
                       <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
@@ -200,7 +200,7 @@ export function ProfileSidebar() {
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
                           <item.icon size={16} className={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
                         </div>
-                        <span className="font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>{item.label}</span>
+                        <span className="font-sans font-medium">{item.label}</span>
                       </button>
                     ))}
                   </nav>

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useApp } from '../contexts/AppContext';
-import { newsAPI, NewsArticle } from '../services/newsAPI';
+import { newsAPI } from '../services/newsAPI';
+import type { NewsArticle } from '../types/article';
 import { NewsCard } from './NewsCard';
 import { HeroCarousel } from './HeroCarousel';
 
@@ -142,8 +143,7 @@ export function NewsGrid() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleLoadMore}
-            className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg hover:shadow-cyan-500/40"
-            style={{ fontFamily: 'Poppins, sans-serif' }}
+            className="font-poppins px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg hover:shadow-cyan-500/40"
           >
             {t.loadMore}
           </motion.button>

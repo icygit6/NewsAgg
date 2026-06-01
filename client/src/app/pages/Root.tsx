@@ -26,9 +26,8 @@ export function Root() {
 
   return (
     <div
-      className="min-h-screen relative overflow-x-hidden"
+      className="min-h-screen relative overflow-x-hidden font-sans"
       style={{
-        fontFamily: 'Inter, sans-serif',
         background: isDark
           ? 'radial-gradient(ellipse at 10% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 85% 15%, rgba(139, 92, 246, 0.1) 0%, transparent 50%), radial-gradient(ellipse at 50% 70%, rgba(59, 130, 246, 0.07) 0%, transparent 50%), #0a0f1e'
           : 'radial-gradient(ellipse at 10% 15%, rgba(6, 182, 212, 0.18) 0%, transparent 45%), radial-gradient(ellipse at 85% 10%, rgba(236, 72, 153, 0.12) 0%, transparent 45%), radial-gradient(ellipse at 55% 55%, rgba(132, 204, 22, 0.1) 0%, transparent 45%), radial-gradient(ellipse at 90% 85%, rgba(234, 179, 8, 0.12) 0%, transparent 45%), #f0fafb',

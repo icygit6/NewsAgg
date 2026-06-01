@@ -53,7 +53,7 @@ export function Header() {
           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=NewsAgg2026" alt="Avatar" className="w-full h-full object-cover bg-gradient-to-br from-cyan-400 to-pink-400" />
         </button>
         <Link to="/" className="flex-shrink-0">
-          <span className="text-xl font-bold bg-gradient-to-r from-cyan-500 to-pink-500 bg-clip-text text-transparent" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <span className="font-poppins text-xl font-bold bg-gradient-to-r from-cyan-500 to-pink-500 bg-clip-text text-transparent">
             NewsAgg
           </span>
         </Link>
@@ -69,8 +69,7 @@ export function Header() {
             onChange={e => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
             placeholder={t.searchPlaceholder}
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400"
-            style={{ fontFamily: 'Inter, sans-serif' }}
+            className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400 font-sans"
           />
           <AnimatePresence>
             {searchQuery && (

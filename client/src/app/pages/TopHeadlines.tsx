@@ -4,7 +4,8 @@ import { TrendingUp } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { NewsCard } from '../components/NewsCard';
 import { SentimentPanel } from '../components/SentimentPanel';
-import { newsAPI, NewsArticle } from '../services/newsAPI';
+import { newsAPI } from '../services/newsAPI';
+import type { NewsArticle } from '../types/article';
 
 export function TopHeadlines() {
   const { t, isDark } = useApp();
@@ -68,7 +69,7 @@ export function TopHeadlines() {
           <TrendingUp size={20} className="text-white" />
         </div>
         <div>
-          <h1 className={`font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <h1 className={`font-poppins font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
             {t.topHeadlines}
           </h1>
           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Today's most important stories</p>

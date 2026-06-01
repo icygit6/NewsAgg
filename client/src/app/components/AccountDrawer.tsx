@@ -100,7 +100,7 @@ export function AccountDrawer() {
 
             {/* Close button */}
             <div className="flex items-center justify-between px-6 py-3 sticky top-4 z-10">
-              <h2 className={`font-bold text-lg ${isDark ? 'text-slate-100' : 'text-gray-900'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
+              <h2 className={`font-poppins font-bold text-lg ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
                 {user ? 'Account' : mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Account' : t.account}
               </h2>
               <button

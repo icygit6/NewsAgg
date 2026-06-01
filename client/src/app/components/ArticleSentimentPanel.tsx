@@ -1,6 +1,7 @@
 import { useApp } from '../contexts/AppContext';
 import { GradientBarWithPointer } from './ui/GradientBarWithPointer';
-import { NewsArticle, SentimentType } from '../services/newsAPI';
+import type { NewsArticle } from '../types/article';
+import type { SentimentType } from '../types/sentiment';
 
 interface ArticleSentimentPanelProps {
     article: NewsArticle;
@@ -74,7 +75,7 @@ export function ArticleSentimentPanel({ article, isDark }: ArticleSentimentPanel
 
     return (
         <div className={`rounded-2xl border p-5 ${panelBase}`}>
-            <h3 className={`text-sm font-semibold mb-3 ${isDark ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <h3 className={`font-poppins text-sm font-semibold mb-3 ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
                 {t.articleSentiment}
             </h3>
 
