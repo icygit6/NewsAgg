@@ -9,6 +9,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000                      # operational override; .env has no PORT
+      CLIENT_URL: "http://localhost:8080"   # CORS — client nginx port
     restart: unless-stopped
 
   client:

@@ -29,32 +29,63 @@ Dipakai scraper Python:
 HF_TOKEN=your_huggingface_token
 ```
 
-## Run
+ Docker Compose Build Steps
 
-Dari root repository:
+  1. Verify server/.env has all required keys
 
-```bash
-docker compose up --build
-```
+  Open server/.env and make sure these are filled in (not empty):
+  NEONDB_URL=postgresql://...        ← must be set
+  JWT_SECRET=...                     ← must be set
+  Everything else (Groq, Gemini, etc.) is optional for the app to start.
 
-Lalu buka:
+  2. Build and start (from the project root)
 
-- Frontend: `http://localhost:8080`
-- Server API: `http://localhost:3000` (atau port yang kamu set)
+  docker compose up --build
+  This builds server + client images and starts both. First build takes ~3–5 minutes.
 
-## Optional overrides
+  3. Access the app
 
-Kalau port `3000` sudah dipakai, set host port lain dan sesuaikan API URL:
+  ┌──────────────┬──────────────────────────────┐
+  │   Service    │             URL              │
+  ├──────────────┼──────────────────────────────┤
+  │ Client (app) │ http://localhost:8080        │
+  ├──────────────┼──────────────────────────────┤
+  │ Server API   │ http://localhost:3000        │
+  ├──────────────┼──────────────────────────────┤
+  │ Health check │ http://localhost:3000/health │
+  └──────────────┴──────────────────────────────┘
 
-```env
-SERVER_HOST_PORT=3001
-VITE_API_URL=http://localhost:3001
-```
+  4. To stop
 
-Kamu bisa set ini lewat environment shell atau file `.env` di root project sebelum menjalankan Compose.
+  docker compose down
 
-## Notes
+  5. Run the scraper (optional, separate profile)
 
-- Tidak ada lagi dependency MongoDB pada stack ini.
-- Root `Dockerfile` build backend image dari root context.
-- `server/Dockerfile` expose port `3000` sesuai `server.js`.
+  docker compose --profile scraper run --rm scraper
+
+  ---
+  Common issues
+
+  │ Server API   │ http://localhost:3000        │
+  ├──────────────┼──────────────────────────────┤
+  │ Health check │ http://localhost:3000/health │
+  └──────────────┴──────────────────────────────┘
+
+  4. To stop
+
+  docker compose down
+
+  5. Run the scraper (optional, separate profile)
+
+  docker compose --profile scraper run --rm scraper
+
+  ---
+  Common issues
+
+  "Cannot connect to Docker daemon" — Make sure Docker Desktop is running first.
+
+  Client shows blank/error — Check that NEONDB_URL is set in server/.env. Run docker compose logs server to see the error.
+
+  Rebuild after code changes — Always add --build flag: docker compose up --build
+
+  Port conflict — If 3000 or 8080 are taken, change the left-side ports in docker-compose.yml (e.g. "3001:3000").
