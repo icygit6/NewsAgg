@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { GoogleLogin } from '@react-oauth/google';
 import { useApp } from '../contexts/AppContext';
+import { useBookmarks } from '../hooks/useBookmarks';
 import { authService } from '../services/authService';
 import type { Language } from '../i18n/translations';
 
@@ -11,10 +12,11 @@ const LANG_BADGE: Record<Language, string> = { en: 'EN', id: 'ID', zhCN: '简', 
 
 export function ProfileSidebar() {
   const {
-    sidebarOpen, setSidebarOpen, isDark, toggleTheme, t, user, setUser, bookmarks,
+    sidebarOpen, setSidebarOpen, isDark, toggleTheme, t, user, setUser,
     language, setLanguage, translateMode, setTranslateMode,
     avatarSrc, avatarUrl, setAvatarUrl,
   } = useApp();
+  const { bookmarks } = useBookmarks();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarError, setAvatarError] = useState('');

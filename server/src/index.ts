@@ -6,6 +6,8 @@ import compression from 'compression'
 import { CORS_ORIGINS } from './config'
 import { newsRouter } from './routes/news'
 import { articlesRouter } from './routes/articles'
+import { marketsRouter } from './routes/markets'
+import { statsRouter } from './routes/stats'
 import { authRouter } from './routes/auth'
 import { bookmarksRouter } from './routes/bookmarks'
 import { userRouter } from './routes/user'
@@ -34,6 +36,8 @@ app.use(apiLimiter)
 app.use('/api/news-from-db', newsRouter)
 app.use('/api/articles', translateRouter)
 app.use('/api/articles', articlesRouter)
+app.use('/api/markets', marketsRouter)
+app.use('/api/stats', statsRouter)
 app.use('/api/quotes', quotesRouter)
 app.use('/api/chat', chatLimiter, chatRouter)
 app.use('/api/user', userRouter)

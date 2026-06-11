@@ -2,13 +2,12 @@ import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import { Clock3, PlayCircle, ShieldAlert, Sparkles, Bookmark } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import { useBookmarks } from '../hooks/useBookmarks';
 import { CATEGORY_BADGE_CLASS, TOPIC_TO_CATEGORY } from '../constants';
 import { getArticleId } from '../services/newsAPI';
 import type { NewsArticle } from '../types/article';
 import type { SentimentType } from '../types/sentiment';
 import { ImageWithFallback } from './utils/ImageWithFallback';
-import { bookmarkService } from '../services/bookmarkService';
-import { useState } from 'react';
 
 const SENTIMENT_STYLE: Record<SentimentType, { bg: string; dot: string; dark: string }> = {
   positive: { bg: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', dark: 'bg-emerald-900/40 text-emerald-300' },
@@ -30,17 +29,18 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ article, index }: NewsCardProps) {
-  const { t, isDark, isAuthenticated, isBookmarkedById, bookmarks, setBookmarks, setSidebarOpen } = useApp();
-  const [isBookmarking, setIsBookmarking] = useState(false);
+  const { t, isDark, isAuthenticated, setSidebarOpen } = useApp();
+  const { isBookmarked: isArticleBookmarked, bookmarkIdFor, add, remove } = useBookmarks();
   const articleId = getArticleId(article);
-  const isBookmarked = isBookmarkedById(articleId);
+  const isBookmarked = isArticleBookmarked(articleId);
+  const isBookmarking = add.isPending || remove.isPending;
   const sentiment = article.sentiment.type;
   const sentStyle = SENTIMENT_STYLE[sentiment];
   const categoryClass = CATEGORY_BADGE_CLASS[TOPIC_TO_CATEGORY[article.topic]];
   const preview = article.aiSummary || article.description || 'No summary available';
   const secondaryImage = article.images.find((image) => !image.isPrimary)?.url;
 
-  const handleBookmarkClick = async (e: React.MouseEvent) => {
+  const handleBookmarkClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -49,26 +49,12 @@ export function NewsCard({ article, index }: NewsCardProps) {
       return;
     }
 
-    setIsBookmarking(true);
-
     if (isBookmarked) {
-      // Remove bookmark
-      const bookmarkId = bookmarks.find(b => b.article_id === articleId)?.id;
-      if (bookmarkId) {
-        const result = await bookmarkService.removeBookmark(bookmarkId);
-        if (result.success) {
-          setBookmarks(bookmarks.filter(b => b.id !== bookmarkId));
-        }
-      }
+      const bookmarkId = bookmarkIdFor(articleId);
+      if (bookmarkId) remove.mutate(bookmarkId);
     } else {
-      // Add bookmark
-      const result = await bookmarkService.addBookmark(article);
-      if (result.success && result.data) {
-        setBookmarks([...bookmarks, result.data]);
-      }
+      add.mutate(article);
     }
-
-    setIsBookmarking(false);
   };
 
   return (
@@ -85,6 +71,8 @@ export function NewsCard({ article, index }: NewsCardProps) {
             <ImageWithFallback
               src={article.urlToImage || secondaryImage || undefined}
               alt={article.title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />

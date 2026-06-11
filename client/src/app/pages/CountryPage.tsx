@@ -1,44 +1,28 @@
 import { useParams } from 'react-router';
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { Globe } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { NewsCard } from '../components/NewsCard';
-import { SentimentPanel } from '../components/SentimentPanel';
-import { newsAPI } from '../services/newsAPI';
-import type { NewsArticle } from '../types/article';
-import { COUNTRIES } from '../constants';
+import { fetchArticlesPage } from '../services/newsAPI';
+import { COUNTRIES, COUNTRY_SOURCE_MAP } from '../constants';
 
 export function CountryPage() {
   const { iso } = useParams<{ iso: string }>();
   const { t, isDark } = useApp();
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const country = COUNTRIES.find(c => c.code === iso);
+  const sources = COUNTRY_SOURCE_MAP[iso ?? ''] ?? [];
 
-  useEffect(() => {
-    const fetchCountryNews = async () => {
-      if (!iso) return;
-      try {
-        setLoading(true);
-        const response = await newsAPI.getCountryHeadlines(iso, 80, 1);
-        if (response.success && response.data?.articles) {
-          setArticles(response.data.articles);
-        } else {
-          setError(response.message || 'Failed to fetch headlines');
-        }
-      } catch (err) {
-        setError('Failed to fetch headlines. Please try again later.');
-        console.error('Failed to fetch country headlines:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['country-articles', iso],
+    queryFn: () => fetchArticlesPage({ sources, pageSize: 50 }, 1),
+    enabled: sources.length > 0,
+  });
 
-    fetchCountryNews();
-  }, [iso]);
+  const articles = sources.length > 0 ? data?.articles ?? [] : [];
+  const loading = sources.length > 0 && isLoading;
+  const error = isError ? 'Failed to fetch headlines. Please try again later.' : null;
 
   if (loading) {
     return (
@@ -81,27 +65,18 @@ export function CountryPage() {
         </div>
       </motion.div>
 
-      <div className="flex gap-5">
-        <div className="flex-1 min-w-0">
-          {articles.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-              {articles.map((article, i) => (
-                <NewsCard key={article.url} article={article} index={i} />
-              ))}
-            </div>
-          ) : (
-            <div className={`text-center py-20 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              <div className="text-5xl mb-4">🌍</div>
-              <p>{t.noResults}</p>
-            </div>
-          )}
+      {articles.length > 0 ? (
+        <div className="grid grid-cols-1 gap-5">
+          {articles.map((article, i) => (
+            <NewsCard key={article.url} article={article} index={i} />
+          ))}
         </div>
-        <div className="hidden lg:block w-72 xl:w-80 shrink-0">
-          <div className="sticky top-[calc(4rem+6px)]">
-            <SentimentPanel />
-          </div>
+      ) : (
+        <div className={`text-center py-20 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
+          <div className="text-5xl mb-4">🌍</div>
+          <p>{t.noResults}</p>
         </div>
-      </div>
+      )}
     </div>
   );
 }

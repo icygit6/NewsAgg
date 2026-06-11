@@ -1,34 +1,14 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { TrendingUp } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { NewsCard } from '../components/NewsCard';
-import { SentimentPanel } from '../components/SentimentPanel';
-import { getRankedHeadlines } from '../services/newsAPI';
-import type { NewsArticle } from '../types/article';
+import { useRankedHeadlines } from '../hooks/useArticles';
 
 export function TopHeadlines() {
   const { t, isDark } = useApp();
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchHeadlines = async () => {
-      try {
-        setLoading(true);
-        const headlines = await getRankedHeadlines(10);
-        setArticles(headlines);
-      } catch (err) {
-        setError('Failed to fetch headlines. Please try again later.');
-        console.error('Failed to fetch headlines:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHeadlines();
-  }, []);
+  const { data, isLoading: loading, isError } = useRankedHeadlines(12);
+  const articles = data?.articles ?? [];
+  const error = isError ? 'Failed to fetch headlines. Please try again later.' : null;
 
   if (loading) {
     return (
@@ -72,19 +52,10 @@ export function TopHeadlines() {
         </div>
       </motion.div>
 
-      <div className="flex gap-5">
-        <div className="flex-1 min-w-0">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-            {articles.map((article, i) => (
-              <NewsCard key={article.url} article={article} index={i} />
-            ))}
-          </div>
-        </div>
-        <div className="hidden lg:block w-72 xl:w-80 shrink-0">
-          <div className="sticky top-[calc(4rem+6px)]">
-            <SentimentPanel />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-5">
+        {articles.map((article, i) => (
+          <NewsCard key={article.url} article={article} index={i} />
+        ))}
       </div>
     </div>
   );

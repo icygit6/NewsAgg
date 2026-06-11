@@ -96,6 +96,21 @@ export interface Translations {
   smogDesc: string;
   sentimentMathTitle: string;
   sentimentMathDesc: string;
+  // Shell / X-layout
+  posts: string;
+  pulse: string;
+  insights: string;
+  viewAllPosts: string;
+  postsComingSoon: string;
+  whatsHappening: string;
+  signInToPost: string;
+  menu: string;
+  // Markets (Business view)
+  markets: string;
+  delayedData: string;
+  businessTrend: string;
+  articlesPerDay: string;
+  avgTone: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -195,6 +210,19 @@ export const translations: Record<Language, Translations> = {
     smogDesc: 'Estimates the years of education needed to understand the text, based on sentence length and complex words. Lower is more accessible.',
     sentimentMathTitle: 'How sentiment is decided',
     sentimentMathDesc: 'A RoBERTa model scores each article for positive, neutral, and negative probability. Polarity is the positive minus negative score, and the gradient bar plots it. The label is chosen by these rules:',
+    posts: 'Posts',
+    pulse: 'Pulse',
+    insights: 'Insights',
+    viewAllPosts: 'View all posts',
+    postsComingSoon: 'Posts are coming soon',
+    whatsHappening: "What's happening?",
+    signInToPost: 'Sign in to post',
+    menu: 'Menu',
+    markets: 'Markets',
+    delayedData: 'Delayed',
+    businessTrend: 'Business pulse — 14 days',
+    articlesPerDay: 'Articles/day',
+    avgTone: 'Avg tone',
   },
   id: {
     home: 'Beranda',
@@ -292,6 +320,19 @@ export const translations: Record<Language, Translations> = {
     smogDesc: 'Memperkirakan tahun pendidikan yang dibutuhkan untuk memahami teks, berdasarkan panjang kalimat dan kata kompleks. Lebih rendah lebih mudah diakses.',
     sentimentMathTitle: 'Bagaimana sentimen ditentukan',
     sentimentMathDesc: 'Model RoBERTa menilai setiap artikel untuk probabilitas positif, netral, dan negatif. Polaritas adalah skor positif dikurangi negatif, dan bilah gradien menampilkannya. Label dipilih dengan aturan ini:',
+    posts: 'Postingan',
+    pulse: 'Pulse',
+    insights: 'Wawasan',
+    viewAllPosts: 'Lihat semua postingan',
+    postsComingSoon: 'Fitur postingan segera hadir',
+    whatsHappening: 'Apa yang sedang terjadi?',
+    signInToPost: 'Masuk untuk memposting',
+    menu: 'Menu',
+    markets: 'Pasar',
+    delayedData: 'Tertunda',
+    businessTrend: 'Denyut bisnis — 14 hari',
+    articlesPerDay: 'Artikel/hari',
+    avgTone: 'Tone rata-rata',
   },
   zhCN: {
     home: '首页',
@@ -389,6 +430,19 @@ export const translations: Record<Language, Translations> = {
     smogDesc: '根据句子长度和复杂词汇，估算理解文本所需的受教育年数。越低越易懂。',
     sentimentMathTitle: '情感如何判定',
     sentimentMathDesc: 'RoBERTa 模型为每篇文章评出积极、中立和消极的概率。极性为积极减去消极的分数，渐变条即按此绘制。标签依据以下规则确定：',
+    posts: '帖子',
+    pulse: '动态',
+    insights: '洞察',
+    viewAllPosts: '查看全部帖子',
+    postsComingSoon: '帖子功能即将上线',
+    whatsHappening: '有什么新鲜事？',
+    signInToPost: '登录后发帖',
+    menu: '菜单',
+    markets: '市场',
+    delayedData: '延迟',
+    businessTrend: '商业脉搏 — 14 天',
+    articlesPerDay: '每日文章',
+    avgTone: '平均情绪',
   },
   zhTW: {
     home: '首頁',
@@ -486,5 +540,18 @@ export const translations: Record<Language, Translations> = {
     smogDesc: '根據句子長度和複雜詞彙，估算理解文字所需的受教育年數。越低越易懂。',
     sentimentMathTitle: '情感如何判定',
     sentimentMathDesc: 'RoBERTa 模型為每篇文章評出積極、中立和消極的機率。極性為積極減去消極的分數，漸層條即按此繪製。標籤依據以下規則確定：',
+    posts: '貼文',
+    pulse: '動態',
+    insights: '洞察',
+    viewAllPosts: '查看全部貼文',
+    postsComingSoon: '貼文功能即將上線',
+    whatsHappening: '有什麼新鮮事？',
+    signInToPost: '登入後發文',
+    menu: '選單',
+    markets: '市場',
+    delayedData: '延遲',
+    businessTrend: '商業脈搏 — 14 天',
+    articlesPerDay: '每日文章',
+    avgTone: '平均情緒',
   },
 };

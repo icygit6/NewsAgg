@@ -11,10 +11,10 @@ import { ArticleSidebar } from '../components/article/ArticleSidebar';
 import { ArticleChat } from '../components/article/ArticleChat';
 import { LanguageSwitcher } from '../components/ui/LanguageSwitcher';
 import { useTranslate } from '../hooks/useTranslate';
+import { useArticle } from '../hooks/useArticle';
 import { mutedTextClass, panelBaseClass } from '../components/article/helpers';
 import {
   getAllArticles,
-  getArticleById,
   getLiveEngagement,
   getSentimentDistribution,
   getTrendingKeywords,
@@ -32,12 +32,18 @@ export function ArticlePage() {
   const navigate = useNavigate();
   const { t, isDark } = useApp();
 
-  const [article, setArticle] = useState<NewsArticle | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // ── Article via React Query (GET /api/articles/:id, legacy-store fallback) ─
+  const { data, isLoading: loading, isError } = useArticle(id);
+  const article: NewsArticle | null = data ?? null;
+  const error = !id
+    ? 'Article reference is missing.'
+    : isError || (!loading && !article)
+      ? 'Article not found in the current dataset.'
+      : null;
+
   const [tick, setTick] = useState(Date.now());
 
-  // ── Async data state ──────────────────────────────────────────────────────
+  // ── Async sidebar data (legacy store — migrates to stats hooks in F5) ─────
   const [categorySentimentDistribution, setCategorySentimentDistribution] = useState<SentimentDistributionItem[]>([]);
   const [categoryArticles, setCategoryArticles] = useState<NewsArticle[]>([]);
   const [categoryTrendingKeywords, setCategoryTrendingKeywords] = useState<TrendingKeyword[]>([]);
@@ -48,20 +54,6 @@ export function ArticlePage() {
     if (historyIndex > 0) { navigate(-1); return; }
     navigate('/');
   };
-
-  // ── Fetch article by id ───────────────────────────────────────────────────
-  useEffect(() => {
-    if (!id) {
-      setError('Article reference is missing.');
-      setLoading(false);
-      return;
-    }
-    getArticleById(id).then((found) => {
-      setArticle(found);
-      setError(found ? null : 'Article not found in the current dataset.');
-      setLoading(false);
-    });
-  }, [id]);
 
   // ── Derive category once article is loaded ────────────────────────────────
   const articleCategory: NewsCategoryFilter = article ? TOPIC_TO_CATEGORY[article.topic] : 'all';
@@ -150,42 +142,42 @@ export function ArticlePage() {
   );
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="px-4 md:px-6 pt-6 md:pt-8">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <button type="button" onClick={handleBackToHome} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}>
-            <ArrowLeft size={16} />{t.backToHome}
-          </button>
-        </motion.div>
-      </div>
+    <div className="px-4 md:px-6 py-6">
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-5">
+        <button type="button" onClick={handleBackToHome} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}>
+          <ArrowLeft size={16} />{t.backToHome}
+        </button>
+      </motion.div>
 
-      <div className="flex gap-6 px-4 md:px-6 pt-6 md:pt-8 flex-1 min-h-0 max-w-[1600px] mx-auto w-full">
+      <div className="lg:flex gap-6">
         {/* Article content */}
-        <div className="flex-1 min-w-0 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="pr-2 pb-50">
-            <div className="mb-5">
-              <LanguageSwitcher isDark={isDark} isLoading={tr.isLoading} isAutoTranslated={tr.isAutoTranslated} />
-            </div>
-            <motion.article initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="min-w-0">
-              <ArticleHeader article={displayArticle} isDark={isDark} />
-              <ArticleBody article={displayArticle} isDark={isDark} />
-              <ArticleFooter article={article} isDark={isDark} />
-            </motion.article>
+        <div className="flex-1 min-w-0 pb-10">
+          <div className="mb-5">
+            <LanguageSwitcher isDark={isDark} isLoading={tr.isLoading} isAutoTranslated={tr.isAutoTranslated} />
           </div>
+          <motion.article initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="min-w-0">
+            <ArticleHeader article={displayArticle} isDark={isDark} />
+            <ArticleBody article={displayArticle} isDark={isDark} />
+            <ArticleFooter article={article} isDark={isDark} />
+          </motion.article>
         </div>
 
         {/* Sidebar — desktop */}
-        <div className="hidden lg:block w-72 xl:w-80 shrink-0 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="pr-2 pb-20">
-            <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, delay: 0.05 }}>
-              {sidebar}
-            </motion.aside>
-          </div>
+        <div className="hidden lg:block w-80 shrink-0">
+          <motion.aside
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 }}
+            className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pb-6 pr-1"
+            style={{ scrollbarWidth: 'thin' }}
+          >
+            {sidebar}
+          </motion.aside>
         </div>
       </div>
 
       {/* Sidebar — mobile */}
-      <div className="lg:hidden overflow-y-auto px-4 md:px-6 py-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="lg:hidden py-8">
         <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, delay: 0.05 }}>
           {sidebar}
         </motion.aside>

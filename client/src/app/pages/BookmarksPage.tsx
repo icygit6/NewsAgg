@@ -1,46 +1,21 @@
-import { useEffect, useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { bookmarkService } from '../services/bookmarkService';
+import { useBookmarks } from '../hooks/useBookmarks';
 import { Link } from 'react-router';
 import { Bookmark, AlertCircle } from 'lucide-react';
 
 export function BookmarksPage() {
-  const { user, isDark, bookmarks, setBookmarks } = useApp();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { user, isDark } = useApp();
+  const { bookmarks, isLoading, isError, remove } = useBookmarks();
+  const loading = Boolean(user) && isLoading;
+  const error = isError ? 'Failed to load bookmarks' : '';
 
-  useEffect(() => {
-    if (user) {
-      loadBookmarks();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadBookmarks = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await bookmarkService.getBookmarks();
-      setBookmarks(data);
-    } catch (err) {
-      setError('Failed to load bookmarks');
-      console.error('Error loading bookmarks:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemoveBookmark = async (bookmarkId: number) => {
-    const result = await bookmarkService.removeBookmark(bookmarkId);
-    if (result.success) {
-      setBookmarks(bookmarks.filter(b => b.id !== bookmarkId));
-    }
+  const handleRemoveBookmark = (bookmarkId: number) => {
+    remove.mutate(bookmarkId);
   };
 
   if (!user) {
     return (
-      <div className={`min-h-screen flex items-center justify-center px-6 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+      <div className="flex items-center justify-center px-6 py-24">
         <div className={`text-center max-w-md ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
           <Bookmark size={48} className="mx-auto mb-4 opacity-50" />
           <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
@@ -59,8 +34,8 @@ export function BookmarksPage() {
   }
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
-      <div className="max-w-6xl mx-auto px-6 py-12">
+    <div>
+      <div className="px-4 md:px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className={`font-poppins text-4xl font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
@@ -111,7 +86,7 @@ export function BookmarksPage() {
 
         {/* Bookmarks Grid */}
         {!loading && bookmarks.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {bookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}

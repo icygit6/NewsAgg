@@ -609,6 +609,89 @@ export const getArticleById = async (articleId: string): Promise<NewsArticle | n
   }
 };
 
+// ─── Paginated API (React Query data layer) ──────────────────────────────────
+// Server-side filtering/paging via GET /api/news-from-db's additive mode with
+// fields=summary — a fraction of the legacy 400-article payload.
+
+export interface ArticlesPageParams {
+  category?: NewsCategoryFilter | string;
+  sources?: string[];
+  sentiment?: SentimentType | 'all' | '';
+  q?: string;
+  sort?: 'latest' | 'rank';
+  pageSize?: number;
+}
+
+export interface ArticlesPage {
+  articles: NewsArticle[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  scrapedAt: string | null;
+  categories: string[];
+  aiModels: Record<string, string>;
+}
+
+export const fetchArticlesPage = async (
+  params: ArticlesPageParams,
+  page = 1
+): Promise<ArticlesPage> => {
+  const pageSize = params.pageSize ?? 20;
+  const sp = new URLSearchParams();
+  sp.set('page', String(page));
+  sp.set('pageSize', String(pageSize));
+  sp.set('fields', 'summary');
+  if (params.category && params.category !== 'all') sp.set('category', String(params.category));
+  if (params.sources && params.sources.length > 0) sp.set('source', params.sources.join(','));
+  if (params.sentiment && params.sentiment !== 'all') sp.set('sentiment', params.sentiment);
+  if (params.q) sp.set('q', params.q);
+  if (params.sort === 'rank') sp.set('sort', 'rank');
+
+  const res = await fetch(`${API_BASE_URL}?${sp.toString()}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  const raw = (await res.json()) as RawNewsData & {
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  const articles = (raw.articles ?? [])
+    .map(normalizeArticle)
+    .filter((article): article is NewsArticle => article !== null);
+
+  return {
+    articles,
+    totalCount: typeof raw.totalCount === 'number' ? raw.totalCount : articles.length,
+    page: raw.page ?? page,
+    pageSize: raw.pageSize ?? pageSize,
+    scrapedAt: pickString(raw.scrapedAt),
+    categories: asStringArray(raw.categories),
+    aiModels: Object.fromEntries(
+      Object.entries(asRecord(raw.aiModels)).map(([key, value]) => [key, String(value)])
+    ),
+  };
+};
+
+/** Single article via GET /api/articles/:id (full fields), falling back to the
+ * legacy in-memory store for old encoded-URL ids. */
+export const fetchArticleById = async (articleId: string): Promise<NewsArticle | null> => {
+  try {
+    const res = await fetch(`${BASE_URL}/api/articles/${encodeURIComponent(articleId)}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.success && json.data) {
+        const normalized = normalizeArticle(json.data);
+        if (normalized) return normalized;
+      }
+    } else if (res.status !== 400 && res.status !== 404) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+  } catch {
+    // fall through to the legacy store lookup
+  }
+  return getArticleById(articleId);
+};
+
 export const getSentimentDistribution = async (
   category: NewsCategoryFilter = 'all'
 ): Promise<SentimentDistributionItem[]> => {
