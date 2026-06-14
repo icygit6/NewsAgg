@@ -39,7 +39,7 @@ export function FooterCompact() {
  * Country, 404). Infinite-feed routes (Home, Posts) opt out via
  * `handle.hideFooter`; there the rail's FooterCompact takes over. Four-column
  * responsive grid (1 col mobile → 4 col desktop) + a bottom copyright bar. */
-export function Footer() {
+export function Footer({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }) {
   const { t, isDark } = useApp();
 
   const heading = `font-poppins font-semibold text-sm mb-3 ${
@@ -58,7 +58,7 @@ export function Footer() {
 
   return (
     <footer
-      className={`mt-8 border-t px-4 md:px-6 py-10 ${
+      className={`mt-8 border-t px-4 md:px-6 py-10 ${hiddenOnMobile ? 'hidden md:block' : ''} ${
         isDark ? 'border-slate-800' : 'border-slate-200'
       }`}
     >

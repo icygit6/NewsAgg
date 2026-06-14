@@ -143,8 +143,12 @@
 
   html {
     font-size: var(--font-size);
-    scrollbar-gutter: stable;
     overflow-anchor: auto;
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
   }
 
   h1 {

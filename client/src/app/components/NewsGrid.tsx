@@ -88,7 +88,7 @@ export function NewsGrid() {
 
       {/* Feed: single column in the X-style centre; two columns once the
           full-bleed centre grows past ~900px (viewport ≥1600px). */}
-      <div className="grid grid-cols-1 min-[1600px]:grid-cols-2 gap-5 overflow-x-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-3 items-stretch gap-3 sm:gap-5 overflow-x-hidden">
         {articles.map((article, i) => (
           <NewsCard key={article.id || article.url} article={article} index={i} />
         ))}

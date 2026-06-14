@@ -15,6 +15,13 @@ export function ArticleBody({ article, isDark }: ArticleBodyProps) {
   const bodyText = bodyTextClass(isDark);
   const galleryImages = article.images.filter((image) => image.url !== article.urlToImage).slice(0, 3);
 
+  // Strip leading description from content if the content begins with it
+  const desc = article.description?.trim() ?? '';
+  const rawContent = article.content ?? '';
+  const bodyContent = desc && rawContent.trimStart().startsWith(desc)
+    ? rawContent.trimStart().slice(desc.length).trimStart()
+    : rawContent;
+
   return (
     <>
       {article.description && <p className={`text-lg leading-relaxed mb-5 ${bodyText}`}>{article.description}</p>}
@@ -44,7 +51,7 @@ export function ArticleBody({ article, isDark }: ArticleBodyProps) {
       )}
 
       <div className={`whitespace-pre-line leading-relaxed mb-8 ${bodyText}`} style={{ fontSize: '1rem', lineHeight: '1.8' }}>
-        {article.content || 'No content provided.'}
+        {bodyContent || 'No content provided.'}
       </div>
     </>
   );

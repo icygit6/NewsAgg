@@ -74,7 +74,7 @@ export function NewsCard({ article, index }: NewsCardProps) {
     >
       <Link to={`/article/${articleId}`} className="block h-full">
         <div className={`h-full rounded-2xl border overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col ${isDark ? 'bg-slate-800/80 border-slate-700/50 backdrop-blur-md hover:border-slate-500' : 'bg-white/85 border-white/60 backdrop-blur-md hover:border-cyan-200'}`}>
-          <div className="relative overflow-hidden h-52 flex-shrink-0">
+          <div className="relative overflow-hidden h-36 lg:h-44 flex-shrink-0">
             <ImageWithFallback
               src={article.urlToImage || secondaryImage || undefined}
               alt={article.title}
@@ -129,7 +129,7 @@ export function NewsCard({ article, index }: NewsCardProps) {
             </div>
 
             <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center gap-2">
-              <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isDark ? sentStyle.dark : sentStyle.bg}`}>
+              <span className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isDark ? sentStyle.dark : sentStyle.bg}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${sentStyle.dot}`} />
                 {article.sentiment.type}
               </span>
@@ -170,11 +170,9 @@ export function NewsCard({ article, index }: NewsCardProps) {
               {article.title}
             </h3>
 
-            <p className={`text-sm line-clamp-2 flex-1 mb-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-              {preview}
-            </p>
+            <div className="flex-1" />
 
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               {article.aiTopLabel && (
                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${isDark ? 'bg-cyan-500/15 text-cyan-300' : 'bg-cyan-50 text-cyan-700'}`}>
                   <Sparkles size={12} />
@@ -185,7 +183,7 @@ export function NewsCard({ article, index }: NewsCardProps) {
               {article.keywords.slice(0, 2).map((keyword) => (
                 <span
                   key={`${article.id}-${keyword}`}
-                  className={`rounded-full px-2.5 py-1 text-[11px] ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-gray-100 text-gray-600'}`}
+                  className={`inline-block max-w-[80px] truncate rounded-full px-2.5 py-1 text-[11px] ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-gray-100 text-gray-600'}`}
                 >
                   #{keyword}
                 </span>

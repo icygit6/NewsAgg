@@ -3,26 +3,27 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 import { useLocation } from 'react-router';
 
+const getMain = () => document.getElementById('main-scroll');
+
 export function ScrollToTop() {
   const { pathname } = useLocation();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Only force top when opening an article detail page.
     if (!pathname.startsWith('/article/')) return;
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    getMain()?.scrollTo({ top: 0, behavior: 'auto' });
   }, [pathname]);
 
   useEffect(() => {
-    const handleScroll = () => setShow(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const el = getMain();
+    if (!el) return;
+    const handleScroll = () => setShow(el.scrollTop > 400);
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollToTop = () => getMain()?.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // Article pages have the floating "Ask AI" button at the bottom-right
-  // corner; stack above it there. Elsewhere only the mobile tab bar matters.
   const isArticle = pathname.startsWith('/article/');
   const offset = isArticle ? 'bottom-36 md:bottom-24' : 'bottom-20 md:bottom-6';
 

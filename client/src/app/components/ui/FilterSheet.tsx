@@ -72,7 +72,7 @@ export function FilterSheet({ open, onClose }: FilterSheetProps) {
 
   // Shared panel body — only one variant (dropdown or sheet) mounts at a time.
   const body = (
-    <div className="flex flex-col">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header row */}
       <div
         className={`flex items-center justify-between px-4 py-3 border-b ${
@@ -150,7 +150,7 @@ export function FilterSheet({ open, onClose }: FilterSheetProps) {
       </div>
 
       {/* Tab content */}
-      <div className="p-3 max-h-[55vh] overflow-y-auto">
+      <div className="p-3 flex-1 min-h-0 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
         {tab === 'category' ? (
           <div className="flex flex-wrap gap-2">
             <CategoryChip
@@ -222,7 +222,7 @@ export function FilterSheet({ open, onClose }: FilterSheetProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className={`absolute right-0 top-full mt-2 w-80 rounded-2xl border shadow-xl overflow-hidden z-50 ${
+            className={`absolute left-0 top-full mt-2 w-[420px] rounded-2xl border shadow-xl overflow-hidden z-50 flex flex-col max-h-[calc(100vh-80px)] ${
               isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'
             }`}
           >
@@ -242,9 +242,10 @@ export function FilterSheet({ open, onClose }: FilterSheetProps) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-              className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl border-t shadow-2xl ${
+              className={`fixed left-0 right-0 z-50 rounded-t-2xl border-t shadow-2xl ${
                 isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-100'
               }`}
+              style={{ bottom: 'calc(env(safe-area-inset-bottom) + 56px)' }}
             >
               {/* Grab handle */}
               <div className="flex justify-center pt-2.5 pb-1">

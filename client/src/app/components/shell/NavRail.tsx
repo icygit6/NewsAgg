@@ -11,8 +11,6 @@ interface NavItem {
   label: string;
 }
 
-/** Left navigation rail (X-style): icon-only between md and xl, icon+label at
- * xl and up. Hidden on mobile, where BottomTabBar takes over. */
 export function NavRail() {
   const { t, isDark, toggleTheme, setSidebarOpen, avatarSrc, user, language, setLanguage } =
     useApp();
@@ -30,9 +28,10 @@ export function NavRail() {
 
   return (
     <nav
-      className={`hidden md:flex sticky top-0 h-screen w-[68px] xl:w-[240px] shrink-0 flex-col
-        items-center xl:items-stretch gap-1 px-2 xl:px-4 py-4 border-r
+      className={`hidden md:flex h-full w-[68px] xl:w-[240px] shrink-0 flex-col
+        items-center xl:items-stretch gap-1 px-2 xl:px-4 py-4 border-r overflow-y-auto
         ${isDark ? 'border-slate-800' : 'border-slate-200'}`}
+      style={{ scrollbarWidth: 'none' }}
       aria-label={t.menu}
     >
       <Link to="/" className="mb-4 flex items-center gap-2 px-2 py-2">
@@ -55,7 +54,7 @@ export function NavRail() {
           className={({ isActive }) =>
             `${baseItem} ${
               isActive
-                ? `font-semibold text-white`
+                ? 'font-semibold text-white'
                 : isDark
                   ? 'text-slate-200'
                   : 'text-slate-700'
@@ -97,10 +96,7 @@ export function NavRail() {
               {LANG_PILLS.map(({ code, short }) => (
                 <button
                   key={code}
-                  onClick={() => {
-                    setLanguage(code);
-                    setLangOpen(false);
-                  }}
+                  onClick={() => { setLanguage(code); setLangOpen(false); }}
                   className={`w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     language === code
                       ? 'text-white'

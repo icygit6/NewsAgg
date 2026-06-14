@@ -5,6 +5,8 @@ import { useApp } from '../contexts/AppContext';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { authService } from '../services/authService';
 import { AuthPanel } from './profile/AuthPanel';
+import { FooterCompact } from './shell/Footer';
+import { useIsMobile } from './ui/use-mobile';
 import type { Language } from '../i18n/translations';
 
 /** Slim account drawer: identity card linking to /profile plus quick
@@ -16,6 +18,7 @@ export function ProfileSidebar() {
   } = useApp();
   const { bookmarks } = useBookmarks();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const goTo = (path: string) => {
     navigate(path);
@@ -53,12 +56,16 @@ export function ProfileSidebar() {
           />
 
           <motion.div
-            initial={{ x: '-100%' }}
+            initial={{ x: isMobile ? '100%' : '-100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
+            exit={{ x: isMobile ? '100%' : '-100%' }}
             transition={{ type: 'spring', stiffness: 350, damping: 35 }}
-            className={`fixed left-0 top-0 bottom-0 z-[70] w-72 flex flex-col shadow-2xl ${
-              isDark ? 'bg-slate-900 border-r border-slate-700' : 'bg-white border-r border-gray-100'
+            className={`fixed top-0 bottom-0 z-[70] w-72 flex flex-col shadow-2xl ${
+              isMobile ? 'right-0' : 'left-0'
+            } ${
+              isDark
+                ? isMobile ? 'bg-slate-900 border-l border-slate-700' : 'bg-slate-900 border-r border-slate-700'
+                : isMobile ? 'bg-white border-l border-gray-100' : 'bg-white border-r border-gray-100'
             }`}
           >
             {/* Header */}
@@ -160,6 +167,10 @@ export function ProfileSidebar() {
                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${translateMode ? 'left-6' : 'left-1'}`} />
                 </div>
               </button>
+
+              <div className={`mt-6 pt-4 border-t ${isDark ? 'border-slate-700' : 'border-gray-100'}`}>
+                <FooterCompact />
+              </div>
             </div>
 
             {/* Sign out */}

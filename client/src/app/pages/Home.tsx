@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import { NewsGrid } from '../components/NewsGrid';
-import { FeedHeader } from '../components/shell/FeedHeader';
 import { useApp } from '../contexts/AppContext';
 
 // Lazy: pulls recharts, must stay out of the Home chunk until Business opens.
@@ -15,13 +14,12 @@ export function Home() {
 
   return (
     <>
-      <FeedHeader />
       {selectedCategory === 'business' && (
         <Suspense fallback={null}>
           <BusinessTrendChart />
         </Suspense>
       )}
-      <div className="px-4 py-5">
+      <div className="px-4 pb-5">
         <NewsGrid />
       </div>
     </>

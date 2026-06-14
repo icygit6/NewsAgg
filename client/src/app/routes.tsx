@@ -19,27 +19,32 @@ export const router = createBrowserRouter([
       { path: 'top-headlines', loader: () => redirect('/') },
       {
         path: 'bookmarks',
+        handle: { mobileFooter: true },
         lazy: async () => ({ Component: (await import('./pages/BookmarksPage')).BookmarksPage }),
       },
       {
+        path: 'insights',
+        handle: { hideRightRail: true, mobileFooter: true },
+        lazy: async () => ({ Component: (await import('./pages/InsightsPage')).InsightsPage }),
+      },
+      {
         path: 'profile',
+        handle: { mobileFooter: true },
         lazy: async () => ({ Component: (await import('./pages/ProfilePage')).ProfilePage }),
       },
       {
         path: 'posts',
-        // Infinite feed — same reasoning as Home.
-        handle: { hideFooter: true },
+        handle: { mobileFooter: true },
         lazy: async () => ({ Component: (await import('./pages/PostsPage')).PostsPage }),
       },
       {
         path: 'country/:iso',
+        handle: { mobileFooter: true },
         lazy: async () => ({ Component: (await import('./pages/CountryPage')).CountryPage }),
       },
       {
-        // Same full-bleed geometry as Home: the article's own sidebar plays
-        // the right-rail role (content ≤760px, sidebar grows to the edge).
         path: 'article/:id',
-        handle: { hideRightRail: true },
+        handle: { hideRightRail: true, mobileFooter: true },
         lazy: async () => ({ Component: (await import('./pages/ArticlePage')).ArticlePage }),
       },
       { path: '*', lazy: async () => ({ Component: (await import('./pages/NotFound')).NotFound }) },

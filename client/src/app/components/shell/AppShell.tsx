@@ -1,46 +1,52 @@
 import type { ReactNode } from 'react';
-import { useMatches } from 'react-router';
+import { useMatches, useLocation } from 'react-router';
 import { NavRail } from './NavRail';
 import { RightRail } from './RightRail';
 import { BottomTabBar } from './BottomTabBar';
 import { TopBar } from './TopBar';
+import { FeedHeader } from './FeedHeader';
 import { Footer } from './Footer';
 
 interface RouteHandle {
   hideRightRail?: boolean;
   hideFooter?: boolean;
+  mobileFooter?: boolean;
 }
 
-/** X-style three-column shell: NavRail (md+), centre feed column, RightRail
- * (lg+). Mobile gets TopBar + BottomTabBar instead. Routes opt out of the
- * right rail / footer via their route `handle` ({ hideRightRail, hideFooter }
- * — the article page hides the rail; infinite-feed pages hide the footer). */
 export function AppShell({ children }: { children: ReactNode }) {
   const matches = useMatches();
+  const { pathname } = useLocation();
+  const isHome = pathname === '/';
+
   const handle = matches.reduce<RouteHandle>((acc, m) => {
     const h = (m.handle ?? {}) as RouteHandle;
     return {
       hideRightRail: acc.hideRightRail || h.hideRightRail,
       hideFooter: acc.hideFooter || h.hideFooter,
+      mobileFooter: acc.mobileFooter || h.mobileFooter,
     };
   }, {});
 
   return (
-    // Full-bleed: NavRail hugs the left edge, RightRail grows to the right
-    // edge (flex-1 in RightRail.tsx) — no dead gutters around the shell.
-    <div className="flex w-full min-h-screen items-stretch">
-      <NavRail />
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex flex-1 min-h-0">
+        <NavRail />
 
-      <main
-        // md:border-r fills the space between NavRail and RightRail — no gaps
-        className="flex-1 min-w-0 w-full md:border-r md:border-slate-200 dark:md:border-slate-800 pb-16 md:pb-0"
-      >
-        <TopBar />
-        {children}
-        {!handle.hideFooter && <Footer />}
-      </main>
+        {/* Centre column: header sits above main only */}
+        <div className="flex flex-col flex-1 min-w-0">
+          {isHome ? <FeedHeader /> : <TopBar />}
+          <main
+            id="main-scroll"
+            className="flex-1 min-w-0 overflow-y-auto pb-16 md:pb-0"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {children}
+            {!handle.hideFooter && <Footer hiddenOnMobile={!handle.mobileFooter} />}
+          </main>
+        </div>
 
-      {!handle.hideRightRail && <RightRail />}
+        {!handle.hideRightRail && <RightRail />}
+      </div>
 
       <BottomTabBar />
     </div>
