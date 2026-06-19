@@ -339,10 +339,17 @@ def run_source(
 
             if to_db:
                 try:
-                    status = db.insert_article(conn, record)
+                    # upsert_with_retry reconnects+retries once: Neon drops the
+                    # idle connection during the first article's model load, so
+                    # the first write of the run would otherwise abort the source.
+                    status, conn = db.upsert_with_retry(conn, record)
                     stats[status] = stats.get(status, 0) + 1
                 except Exception as e:              # noqa: BLE001
-                    conn.rollback()
+                    try:
+                        if conn is not None and not conn.closed:
+                            conn.rollback()
+                    except Exception:              # noqa: BLE001
+                        pass
                     stats["errors"] = stats.get("errors", 0) + 1
                     print(f"     DB insert error: {e}")
             cat_articles.append(record)
