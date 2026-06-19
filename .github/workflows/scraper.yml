@@ -11,6 +11,12 @@
 # - HF models are ~4-6GB; the cache below keeps runs fast. Bump the key's
 #   version suffix whenever MODELS in scraper/core/config.py changes, so dead
 #   model weights don't ride along forever.
+# - run_all.py runs with --target (articles per category per source). The
+#   config default is 50 which, across 8 categories x 4 sources, is ~1600 heavy
+#   NLP enrichments and ALWAYS blows the 2h timeout. The scheduled run is bounded
+#   to a small top-up below. IMPORTANT: a job killed by the timeout never saves
+#   the HF cache (the post-step is skipped on cancellation), so an over-budget
+#   run re-downloads 4-6GB every time — keep the target low enough to finish.
 name: Scraper
 
 on:
@@ -24,6 +30,9 @@ on:
         type: choice
         options: [scrape, cleanup]
         default: scrape
+      target:
+        description: 'Articles per category per source (scrape only)'
+        default: '10'
 
 concurrency:
   group: scraper
@@ -36,6 +45,8 @@ jobs:
       (github.event_name == 'workflow_dispatch' && inputs.job == 'scrape')
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
 
@@ -63,11 +74,14 @@ jobs:
       - name: Install Playwright Chromium
         run: playwright install --with-deps chromium
 
+      # Bounded top-up: --target caps articles per category per source so the
+      # run finishes inside timeout-minutes. Manual runs can override via the
+      # workflow_dispatch input; the scheduled run falls back to 10.
       - name: Run all sources
         env:
           NEONDB_URL: ${{ secrets.NEONDB_URL }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python scraper/run_all.py
+        run: python scraper/run_all.py --target ${{ inputs.target || '10' }}
 
   cleanup:
     if: >-
@@ -75,6 +89,8 @@ jobs:
       (github.event_name == 'workflow_dispatch' && inputs.job == 'cleanup')
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
 
