@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { logger } from '../lib/logger'
 import { chatWithArticle, chatWithArticleHistory, type ChatTurn } from '../services/groq'
 import { validateBody, chatSchema } from '../middleware/validate'
 
@@ -32,7 +33,7 @@ chatRouter.post('/', validateBody(chatSchema), async (req: Request, res: Respons
     }
     return res.json({ success: true, data: { reply } })
   } catch (err: any) {
-    console.error('[POST /api/chat]', err?.message)
+    logger.error({ err: err?.message }, '[POST /api/chat]')
     return res.status(500).json({ success: false, message: 'AI chat failed' })
   }
 })

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { logger } from '../lib/logger'
 
 // GET /api/markets/summary — keyless market data for the Business view:
 //   fx      open.er-api.com  (USD→IDR / TWD / EUR, 12h TTL — daily data)
@@ -40,7 +41,7 @@ async function section<T>(key: string, ttlMs: number, loader: () => Promise<T>):
     lastGood.set(key, { value, fetchedAt: now })
     return { value, fetchedAt: now, stale: false }
   } catch (err) {
-    console.error(`[markets:${key}]`, (err as Error).message)
+    logger.error({ err: (err as Error).message }, `[markets:${key}]`)
     if (cached) return { value: cached.value as T, fetchedAt: cached.fetchedAt, stale: true }
     return { value: null, fetchedAt: now, stale: true }
   }

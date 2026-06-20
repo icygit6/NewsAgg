@@ -1,4 +1,5 @@
 import { Router, Response } from 'express'
+import { logger } from '../lib/logger'
 import bcrypt from 'bcryptjs'
 import { pool, query } from '../db/client'
 import { authMiddleware } from '../middleware/auth'
@@ -15,7 +16,11 @@ import {
 export const accountRouter = Router()
 accountRouter.use(authMiddleware)
 
-const USER_COLS = 'id, email, username, avatar, role, created_at, last_login'
+const USER_COLS = 'id, email, username, avatar, role, email_verified, created_at, last_login'
+
+// Surface camelCase `emailVerified` alongside the raw snake_case row so the
+// client reads one consistent field for the verify-email banner.
+const withEmailVerified = (u: any) => ({ ...u, emailVerified: u.email_verified })
 
 // GET /api/account/me — also validates the stored token on app boot.
 accountRouter.get('/me', async (req: any, res: Response) => {
@@ -25,9 +30,11 @@ accountRouter.get('/me', async (req: any, res: Response) => {
       // Token of a deleted account: 401 funnels into the client's global sign-out.
       return res.status(401).json({ success: false, error: 'Account no longer exists' })
     }
-    res.json({ success: true, user: result.rows[0] })
+    // Surface camelCase `emailVerified` alongside the raw row so the client's
+    // verify-email banner reads the same field everywhere (auth + account).
+    res.json({ success: true, user: withEmailVerified(result.rows[0]) })
   } catch (err: any) {
-    console.error('[GET /api/account/me]', err?.message)
+    logger.error({ err: err?.message }, '[GET /api/account/me]')
     res.status(500).json({ success: false, error: 'Failed to load account' })
   }
 })
@@ -47,9 +54,9 @@ accountRouter.patch('/profile', validateBody(profileSchema), async (req: any, re
       `UPDATE users SET username = $1 WHERE id = $2 RETURNING ${USER_COLS}`,
       [username, req.userId]
     )
-    res.json({ success: true, user: result.rows[0] })
+    res.json({ success: true, user: withEmailVerified(result.rows[0]) })
   } catch (err: any) {
-    console.error('[PATCH /api/account/profile]', err?.message)
+    logger.error({ err: err?.message }, '[PATCH /api/account/profile]')
     res.status(500).json({ success: false, error: 'Failed to update profile' })
   }
 })
@@ -80,7 +87,7 @@ accountRouter.patch(
       await query('UPDATE users SET password = $1 WHERE id = $2', [hashed, req.userId])
       res.json({ success: true })
     } catch (err: any) {
-      console.error('[PATCH /api/account/password]', err?.message)
+      logger.error({ err: err?.message }, '[PATCH /api/account/password]')
       res.status(500).json({ success: false, error: 'Failed to change password' })
     }
   }
@@ -98,7 +105,7 @@ accountRouter.put('/avatar', validateBody(avatarSchema), async (req: any, res: R
     }
     res.json({ success: true, avatar: result.rows[0].avatar })
   } catch (err: any) {
-    console.error('[PUT /api/account/avatar]', err?.message)
+    logger.error({ err: err?.message }, '[PUT /api/account/avatar]')
     res.status(500).json({ success: false, error: 'Failed to update avatar' })
   }
 })
@@ -136,7 +143,7 @@ accountRouter.delete('/', async (req: any, res: Response) => {
     res.json({ success: true })
   } catch (err: any) {
     await client.query('ROLLBACK').catch(() => {})
-    console.error('[DELETE /api/account]', err?.message)
+    logger.error({ err: err?.message }, '[DELETE /api/account]')
     res.status(500).json({ success: false, error: 'Failed to delete account' })
   } finally {
     client.release()

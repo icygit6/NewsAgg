@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { logger } from '../lib/logger'
 import { query } from '../db/client'
 import { translateArticleFields, SUPPORTED_LANGS, type ApiLang } from '../services/translate'
 import { translateLimiter } from '../middleware/rateLimit'
@@ -156,7 +157,7 @@ translateRouter.get('/:id/translate', translateLimiter, async (req: Request, res
       },
     })
   } catch (err: any) {
-    console.error('[GET /api/articles/:id/translate]', err.message)
+    logger.error({ err: err.message }, '[GET /api/articles/:id/translate]')
     return res.status(500).json({ success: false, message: 'Translation failed' })
   }
 })

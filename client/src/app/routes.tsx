@@ -50,4 +50,13 @@ export const router = createBrowserRouter([
       { path: '*', lazy: async () => ({ Component: (await import('./pages/NotFound')).NotFound }) },
     ],
   },
+  // Standalone auth flows — rendered outside the app shell (no nav/feed).
+  {
+    path: '/reset-password',
+    lazy: async () => ({ Component: (await import('./pages/ResetPasswordPage')).ResetPasswordPage }),
+  },
+  {
+    path: '/verify-email',
+    lazy: async () => ({ Component: (await import('./pages/VerifyEmailPage')).VerifyEmailPage }),
+  },
 ]);

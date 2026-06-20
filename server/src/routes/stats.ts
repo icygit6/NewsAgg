@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { logger } from '../lib/logger'
 import { query } from '../db/client'
 import { TtlCache } from '../lib/ttlCache'
 
@@ -87,7 +88,7 @@ statsRouter.get('/overview', async (req: Request, res: Response) => {
     })
     res.json(body)
   } catch (err: any) {
-    console.error('[GET /api/stats/overview]', err.message)
+    logger.error({ err: err.message }, '[GET /api/stats/overview]')
     res.status(500).json({ success: false, message: 'Server Database Error' })
   }
 })
@@ -123,7 +124,7 @@ statsRouter.get('/trending', async (req: Request, res: Response) => {
     })
     res.json(body)
   } catch (err: any) {
-    console.error('[GET /api/stats/trending]', err.message)
+    logger.error({ err: err.message }, '[GET /api/stats/trending]')
     res.status(500).json({ success: false, message: 'Server Database Error' })
   }
 })
@@ -161,7 +162,7 @@ statsRouter.get('/business-trend', async (req: Request, res: Response) => {
     })
     res.json(body)
   } catch (err: any) {
-    console.error('[GET /api/stats/business-trend]', err.message)
+    logger.error({ err: err.message }, '[GET /api/stats/business-trend]')
     res.status(500).json({ success: false, message: 'Server Database Error' })
   }
 })

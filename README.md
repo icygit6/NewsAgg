@@ -10,8 +10,10 @@ scraper/   Python — scrapes CNN / BBC / Al Jazeera / Yahoo TW, enriches with
            XLM-R NER, zero-shot topic, readability, toxicity) and upserts into
            PostgreSQL (Neon).
 server/    Express + TypeScript API (port 3001) — articles, stats, markets,
-           quotes, auth (email + Google), account, bookmarks, posts, translate
-           (Gemini→Lingva fallback), AI chat (Groq, multi-turn).
+           quotes, auth (email + Google, password reset, email verification),
+           account, bookmarks, posts, translate (Gemini→Lingva fallback),
+           AI chat (Groq, multi-turn). Structured logging (pino) and opt-in
+           Sentry error monitoring.
 client/    React 18 + Vite + Tailwind v4 + React Query (port 5173) — X-style
            shell: NavRail · centre feed (filter-aware hero carousel + infinite
            list) · right rail (Insights analytics | Pulse posts+quotes feed).
@@ -21,7 +23,9 @@ The live database schema is authoritative (see `server/src/db/migrations/000_ini
 
 ## Running locally
 
-Backend (needs `server/.env` — see CLAUDE.md for the variable list):
+Backend (needs `server/.env` — see [`.env.example`](.env.example) for the full
+variable list; on a fresh database apply the migrations under
+`server/src/db/migrations/` with `node scripts/migrate.mjs <file>.sql`):
 
 ```powershell
 cd server
@@ -29,6 +33,9 @@ npm install --legacy-peer-deps
 npm run build
 npm start
 ```
+
+Password-reset and email-verification links are printed to the server console
+unless SMTP is configured, so the flows are fully testable with no setup.
 
 Frontend:
 
@@ -56,15 +63,34 @@ GET  /api/articles/:id            GET  /api/articles/:id/translate?lang=
 GET  /api/stats/overview          GET  /api/stats/trending        GET  /api/stats/business-trend
 GET  /api/markets/summary         GET  /api/quotes/random|list
 POST /api/chat                    { message, articleContent, lang, messages? }  → multi-turn Groq
-POST /auth/register|login|google  GET/PATCH/PUT/DELETE /api/account/...          [Bearer]
+POST /auth/register|login|google                      GET/PATCH/PUT/DELETE /api/account/...   [Bearer]
+POST /auth/forgot-password|reset-password|verify-email                 POST /auth/resend-verification [Bearer]
 GET/POST /bookmarks               GET/POST/DELETE /api/posts (+ /:id/like)       [Bearer for writes]
+GET  /health                      DB-backed liveness probe → 200 {ok:true} | 503 when Postgres is down
 ```
 
 ## Conventions
 
 - One accent identity: cyan→pink brand gradient (`--brand*` tokens in `client/src/styles/tokens.css`); never name a custom token `--accent` — shadcn's `theme.css` owns that name and is imported later.
+- Brand assets in `client/public/` (PWA icons, maskable icon, apple-touch icon, OG image) are generated from the cyan→pink "N" mark by `client/scripts/generate-brand-assets.py`; `favicon.svg` is hand-authored. The PWA manifest is `client/public/manifest.webmanifest`.
 - All UI strings go through `client/src/app/i18n/translations.ts` (en / id / zh-CN / zh-TW).
 - Server state lives in React Query hooks (`client/src/app/hooks/`); AppContext holds UI + identity only.
 - The posts feature is gated by `POSTS_ENABLED` in `client/src/app/constants/index.ts`.
 
-See `CLAUDE.md` for the full phase-by-phase execution log, environment variables and operational runbooks.
+## Testing & quality
+
+The server and client run the same gates locally and in CI
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml) — one job each, on every
+push and PR):
+
+```powershell
+npm run lint        # ESLint (flat config)
+npm run typecheck   # tsc --noEmit
+npm test            # Vitest — server: auth routes + token helpers; client: components + services
+npm run build
+```
+
+`npm run format` applies Prettier. Tests live next to the code as `*.test.ts(x)`.
+
+Environment variables are documented in [`.env.example`](.env.example); the
+authoritative database schema lives in `server/src/db/migrations/`.

@@ -6,6 +6,7 @@ import { useApp } from '../contexts/AppContext';
 import { TOPIC_BADGE_CLASS } from '../constants';
 import { getArticleId } from '../services/newsAPI';
 import { useRankedHeadlines } from '../hooks/useArticles';
+import { ImageWithFallback } from './utils/ImageWithFallback';
 import type { SentimentType } from '../types/sentiment';
 
 interface SentimentBadgeProps {
@@ -107,8 +108,8 @@ export function HeroCarousel() {
           transition={{ duration: 0.6 }}
           className="absolute inset-0"
         >
-          <img
-            src={article.urlToImage || article.images[0]?.url || 'https://via.placeholder.com/800x400?text=No+Image'}
+          <ImageWithFallback
+            src={article.urlToImage || article.images[0]?.url || undefined}
             alt={article.title}
             className="w-full h-full object-cover"
           />
@@ -162,12 +163,16 @@ export function HeroCarousel() {
       {/* Navigation arrows */}
       <button
         onClick={prev}
+        aria-label={t.previous}
+        title={t.previous}
         className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-9 md:h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm"
       >
         <ChevronLeft size={16} />
       </button>
       <button
         onClick={next}
+        aria-label={t.next}
+        title={t.next}
         className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-9 md:h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm"
       >
         <ChevronRight size={16} />
