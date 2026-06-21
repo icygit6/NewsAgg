@@ -7,6 +7,7 @@ import { CATEGORY_BADGE_CLASS, CATEGORIES, CATEGORY_LABELS } from '../../constan
 import { useStatsOverview, type StatsOverview } from '../../hooks/useStats';
 import type { NewsCategoryFilter } from '../../types/article';
 import type { SentimentDistributionItem } from '../../types/sentiment';
+import { ChartFrame } from '../ui/ChartFrame';
 import { panelBaseClass, chartTextColor, chartMutedColor } from './shared';
 
 const toDistribution = (overview: StatsOverview | undefined): SentimentDistributionItem[] =>
@@ -112,7 +113,7 @@ export function SentimentChart() {
             </span>
           </div>
 
-          <div className="h-[130px] w-full flex min-w-0">
+          <ChartFrame className="h-[130px] w-full flex min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={overallSentimentData} cx="50%" cy="50%" innerRadius={28} outerRadius={52} paddingAngle={2} dataKey="value">
@@ -123,7 +124,7 @@ export function SentimentChart() {
                 <Tooltip content={<CustomTooltip isDark={isDark} total={overallTotal} />} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </ChartFrame>
 
           <div className="space-y-2">
             {overallSentimentData.map((item) => {
@@ -171,7 +172,7 @@ export function SentimentChart() {
             )}
           </div>
 
-          <div className="h-[130px] w-full flex min-w-0">
+          <ChartFrame className="h-[130px] w-full flex min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={categorySentimentData} cx="50%" cy="50%" innerRadius={28} outerRadius={52} paddingAngle={2} dataKey="value">
@@ -182,7 +183,7 @@ export function SentimentChart() {
                 <Tooltip content={<CustomTooltip isDark={isDark} total={categoryTotal} />} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </ChartFrame>
 
           <div className="space-y-2">
             {categorySentimentData.map((item) => {

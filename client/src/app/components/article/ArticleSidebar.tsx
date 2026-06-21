@@ -14,6 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartFrame } from '../ui/ChartFrame';
 import { ArticleSentimentPanel } from '../ArticleSentimentPanel';
 import { getArticleId } from '../../services/newsAPI';
 import type { Translations } from '../../i18n/translations';
@@ -154,7 +155,7 @@ export function ArticleSidebar({
         </h3>
         <p className={`text-xs mb-4 ${mutedText}`}>{article.topic} articles in current dataset</p>
 
-        <div className="h-[140px] w-full mb-4 flex min-w-0">
+        <ChartFrame className="h-[140px] w-full mb-4 flex min-w-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={categorySentimentChartData} cx="50%" cy="50%" innerRadius={30} outerRadius={58} paddingAngle={2} dataKey="value">
@@ -165,7 +166,7 @@ export function ArticleSidebar({
               <Tooltip content={<SentimentTooltip isDark={isDark} total={categorySentimentTotal} />} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </ChartFrame>
 
         <div className="space-y-2.5">
           {categorySentimentDistribution.map((item) => {

@@ -94,3 +94,33 @@ npm run build
 
 Environment variables are documented in [`.env.example`](.env.example); the
 authoritative database schema lives in `server/src/db/migrations/`.
+
+## Performance & accessibility
+
+The client is audited with Lighthouse against the production **preview** build
+(not the dev server, which ships unminified and unbundled):
+
+```powershell
+cd client
+npm run build
+npm run preview     # serves the built app; run Lighthouse on the printed URL
+```
+
+Notable optimizations from the latest audit pass:
+
+- **LCP / loading** — the hero carousel's lead image loads with
+  `fetchPriority="high"`, `loading="eager"` and `decoding="async"`, and is painted
+  at full opacity on first render (the cross-fade is skipped for the initial slide
+  so the largest paint isn't held at `opacity:0`). `index.html` preconnects to the
+  BBC/CNN image CDNs and to Google Fonts.
+- **Accessibility** — carousel pagination dots are real `<button>`s with
+  `aria-label` (`goToSlide`) / `aria-current` and 24px tap targets; the
+  `health` and `science` category badges were darkened (emerald/teal 600 → 700)
+  to clear WCAG contrast.
+- **Best practices (clean console)** — Recharts panels only mount their
+  `ResponsiveContainer` once the box has a non-zero size (`ui/ChartFrame.tsx`,
+  no "width(0) and height(0)" warnings while a rail is hidden); the router ships a
+  `HydrateFallback` for the initial lazy-route hydration
+  (`components/RouteFallback.tsx`); and every form field carries a `name` +
+  `autoComplete` so the browser can autofill and DevTools stops flagging
+  unidentified fields.

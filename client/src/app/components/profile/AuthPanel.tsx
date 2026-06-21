@@ -139,6 +139,8 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
             <label className={labelClass}>Username</label>
             <input
               type="text"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="your username"
@@ -150,6 +152,8 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
           <label className={labelClass}>Email</label>
           <input
             type="email"
+            name="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
@@ -162,6 +166,8 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
