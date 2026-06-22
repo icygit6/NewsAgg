@@ -12,7 +12,8 @@ export interface Translations {
   business: string;
   science: string;
   health: string;
-  entertainment: string;
+  lifestyle: string;
+  climate: string;
   sports: string;
   general: string;
   english: string;
@@ -175,7 +176,8 @@ export const translations: Record<Language, Translations> = {
     business: 'Business',
     science: 'Science',
     health: 'Health',
-    entertainment: 'Entertainment',
+    lifestyle: 'Lifestyle',
+    climate: 'Climate',
     sports: 'Sports',
     general: 'General',
     english: 'English',
@@ -333,7 +335,8 @@ export const translations: Record<Language, Translations> = {
     business: 'Bisnis',
     science: 'Sains',
     health: 'Kesehatan',
-    entertainment: 'Hiburan',
+    lifestyle: 'Gaya Hidup',
+    climate: 'Iklim',
     sports: 'Olahraga',
     general: 'Umum',
     english: 'English',
@@ -491,7 +494,8 @@ export const translations: Record<Language, Translations> = {
     business: '商业',
     science: '科学',
     health: '健康',
-    entertainment: '娱乐',
+    lifestyle: '生活',
+    climate: '气候',
     sports: '体育',
     general: '综合',
     english: 'English',
@@ -649,7 +653,8 @@ export const translations: Record<Language, Translations> = {
     business: '商業',
     science: '科學',
     health: '健康',
-    entertainment: '娛樂',
+    lifestyle: '生活',
+    climate: '氣候',
     sports: '體育',
     general: '綜合',
     english: 'English',
