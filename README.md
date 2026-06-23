@@ -66,5 +66,3 @@ GET/POST /bookmarks               GET/POST/DELETE /api/posts (+ /:id/like)      
 - All UI strings go through `client/src/app/i18n/translations.ts` (en / id / zh-CN / zh-TW).
 - Server state lives in React Query hooks (`client/src/app/hooks/`); AppContext holds UI + identity only.
 - The posts feature is gated by `POSTS_ENABLED` in `client/src/app/constants/index.ts`.
-
-See `CLAUDE.md` for the full phase-by-phase execution log, environment variables and operational runbooks.
