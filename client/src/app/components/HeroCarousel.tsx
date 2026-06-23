@@ -6,6 +6,7 @@ import { useApp } from '../contexts/AppContext';
 import { TOPIC_BADGE_CLASS } from '../constants';
 import { getArticleId } from '../services/newsAPI';
 import { useRankedHeadlines } from '../hooks/useArticles';
+import { ImageWithFallback } from './utils/ImageWithFallback';
 import type { SentimentType } from '../types/sentiment';
 
 interface SentimentBadgeProps {
@@ -97,8 +98,9 @@ export function HeroCarousel() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Background images */}
-      <AnimatePresence mode="wait">
+      {/* Background images — initial={false} paints the first slide at full opacity
+          (no fade-in) so the LCP image isn't held at opacity:0; later slides still cross-fade. */}
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={idx}
           initial={{ opacity: 0 }}
@@ -107,10 +109,13 @@ export function HeroCarousel() {
           transition={{ duration: 0.6 }}
           className="absolute inset-0"
         >
-          <img
-            src={article.urlToImage || article.images[0]?.url || 'https://via.placeholder.com/800x400?text=No+Image'}
+          <ImageWithFallback
+            src={article.urlToImage || article.images[0]?.url || undefined}
             alt={article.title}
             className="w-full h-full object-cover"
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent rounded-xl" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent rounded-xl" />
@@ -162,25 +167,36 @@ export function HeroCarousel() {
       {/* Navigation arrows */}
       <button
         onClick={prev}
+        aria-label={t.previous}
+        title={t.previous}
         className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-9 md:h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm"
       >
         <ChevronLeft size={16} />
       </button>
       <button
         onClick={next}
+        aria-label={t.next}
+        title={t.next}
         className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-9 md:h-9 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm"
       >
         <ChevronRight size={16} />
       </button>
 
-      {/* Dots indicator */}
-      <div className="absolute bottom-3 right-4 flex items-center gap-1 z-10">
+      {/* Dots indicator — each button gets a 24px tap target (p-2.5) around a small
+          visible dot, plus an accessible name for screen readers. */}
+      <div className="absolute bottom-1 right-2 flex items-center z-10">
         {headlines.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`transition-all duration-300 rounded-full ${i === idx ? 'w-5 h-1.5 bg-cyan-400' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'}`}
-          />
+            aria-label={`${t.goToSlide} ${i + 1}`}
+            aria-current={i === idx ? 'true' : undefined}
+            className="p-2.5 flex items-center"
+          >
+            <span
+              className={`block transition-all duration-300 rounded-full ${i === idx ? 'w-5 h-1.5 bg-cyan-400' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'}`}
+            />
+          </button>
         ))}
       </div>
 

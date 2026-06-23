@@ -40,6 +40,21 @@ export const googleAuthSchema = z.object({
   token: z.string().min(10, 'Google credential required').max(4096),
 })
 
+// Password reset / email verification. Tokens are 64-hex (32 random bytes);
+// stay lenient on the exact length but bound it.
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('valid email required').max(255),
+})
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(16, 'invalid or missing token').max(256),
+  password: z.string().min(8, 'password must be at least 8 characters').max(128),
+})
+
+export const verifyEmailSchema = z.object({
+  token: z.string().trim().min(16, 'invalid or missing token').max(256),
+})
+
 export const profileSchema = z.object({
   username: z
     .string()

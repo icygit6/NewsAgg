@@ -35,6 +35,7 @@ export interface Translations {
   loadMore: string;
   previous: string;
   next: string;
+  goToSlide: string;
   page: string;
   of: string;
   account: string;
@@ -198,6 +199,7 @@ export const translations: Record<Language, Translations> = {
     loadMore: 'Load More',
     previous: 'Previous',
     next: 'Next',
+    goToSlide: 'Go to slide',
     page: 'Page',
     of: 'of',
     account: 'Account',
@@ -356,6 +358,7 @@ export const translations: Record<Language, Translations> = {
     loadMore: 'Muat Lebih Banyak',
     previous: 'Sebelumnya',
     next: 'Berikutnya',
+    goToSlide: 'Ke slide',
     page: 'Halaman',
     of: 'dari',
     account: 'Akun',
@@ -514,6 +517,7 @@ export const translations: Record<Language, Translations> = {
     loadMore: '加载更多',
     previous: '上一页',
     next: '下一页',
+    goToSlide: '跳转到第',
     page: '第',
     of: '页，共',
     account: '账户',
@@ -672,6 +676,7 @@ export const translations: Record<Language, Translations> = {
     loadMore: '載入更多',
     previous: '上一頁',
     next: '下一頁',
+    goToSlide: '跳轉到第',
     page: '第',
     of: '頁，共',
     account: '帳戶',

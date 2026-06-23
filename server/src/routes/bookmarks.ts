@@ -1,4 +1,5 @@
 import { Router, Response } from 'express'
+import { logger } from '../lib/logger'
 import { query } from '../db/client'
 import { authMiddleware } from '../middleware/auth'
 import { validateBody, bookmarkSchema } from '../middleware/validate'
@@ -26,7 +27,7 @@ bookmarksRouter.post('/', validateBody(bookmarkSchema), async (req: any, res: Re
     if (error.code === '23505') {
       return res.json({ success: false, error: 'Article already bookmarked' })
     }
-    console.error('Bookmark add error:', error)
+    logger.error({ err: error }, 'Bookmark add error:')
     res.json({ success: false, error: 'Failed to add bookmark' })
   }
 })
@@ -40,7 +41,7 @@ bookmarksRouter.get('/', async (req: any, res: Response) => {
     )
     res.json({ success: true, data: result.rows })
   } catch (error: any) {
-    console.error('Bookmarks fetch error:', error)
+    logger.error({ err: error }, 'Bookmarks fetch error:')
     res.json({ success: false, error: 'Failed to load bookmarks' })
   }
 })
@@ -58,7 +59,7 @@ bookmarksRouter.get('/check/:articleId', async (req: any, res: Response) => {
       bookmarkId: result.rows[0]?.id || null
     })
   } catch (error: any) {
-    console.error('Bookmark check error:', error)
+    logger.error({ err: error }, 'Bookmark check error:')
     res.json({ success: false, error: 'Failed to check bookmark' })
   }
 })
@@ -75,7 +76,7 @@ bookmarksRouter.delete('/:bookmarkId', async (req: any, res: Response) => {
     }
     res.json({ success: true })
   } catch (error: any) {
-    console.error('Bookmark delete error:', error)
+    logger.error({ err: error }, 'Bookmark delete error:')
     res.json({ success: false, error: 'Failed to delete bookmark' })
   }
 })

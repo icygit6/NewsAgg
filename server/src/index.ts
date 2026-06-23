@@ -1,9 +1,18 @@
 import 'dotenv/config'
+import { initSentry, sentryEnabled, Sentry } from './lib/sentry'
+
+// Initialise error monitoring before anything else runs. No-op unless SENTRY_DSN
+// is set, so nothing is sent off-box by default.
+initSentry()
+
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
+import pinoHttp from 'pino-http'
 import { CORS_ORIGINS } from './config'
+import { logger } from './lib/logger'
+import { pool } from './db/client'
 import { newsRouter } from './routes/news'
 import { articlesRouter } from './routes/articles'
 import { marketsRouter } from './routes/markets'
@@ -25,6 +34,15 @@ const PORT = process.env.PORT || 3001
 // arrives in X-Forwarded-For; without trust proxy every visitor would share a
 // single rate-limit bucket. Opt-in so a directly-exposed server stays strict.
 if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1)
+
+// Structured request logging. /health is excluded so liveness probes don't
+// flood the logs.
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: { ignore: (req) => req.url === '/health' },
+  })
+)
 
 app.use(helmet())
 app.use(cors({ origin: CORS_ORIGINS }))
@@ -48,28 +66,42 @@ app.use('/api/posts', postsRouter)
 app.use('/auth', authLimiter, authRouter)
 app.use('/bookmarks', bookmarksRouter)
 
-app.get('/health', (_, res) => res.json({ ok: true }))
+// Liveness + readiness: pings the database so the probe fails when Postgres is
+// unreachable instead of reporting healthy with a dead backend.
+app.get('/health', async (_req, res) => {
+  try {
+    await pool.query('SELECT 1')
+    res.json({ ok: true, db: 'up' })
+  } catch (err) {
+    logger.error({ err }, 'health check: database unreachable')
+    res.status(503).json({ ok: false, db: 'down' })
+  }
+})
 
 // JSON 404 for anything unmatched (used to fall through to Express' HTML 404).
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: 'Not found', error: 'Not found' })
 })
 
+// Sentry's Express error handler captures 5xx before our responder runs. No-op
+// registration is avoided entirely when monitoring is disabled.
+if (sentryEnabled) Sentry.setupExpressErrorHandler(app)
+
 // Global error handler: body-parser failures (bad JSON, oversized payloads)
 // and anything routes throw land here. Internals are logged, never leaked.
 // The 4-arg signature is required for Express to treat this as an error handler.
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const status =
-    typeof err?.status === 'number' ? err.status
-    : typeof err?.statusCode === 'number' ? err.statusCode
-    : 500
-  if (status >= 500) console.error('[unhandled]', err?.stack || err)
+    typeof err?.status === 'number'
+      ? err.status
+      : typeof err?.statusCode === 'number'
+        ? err.statusCode
+        : 500
+  if (status >= 500) logger.error({ err }, 'unhandled error')
   if (res.headersSent) return
   const message =
-    status === 413 ? 'Payload too large'
-    : status < 500 ? 'Bad request'
-    : 'Internal server error'
+    status === 413 ? 'Payload too large' : status < 500 ? 'Bad request' : 'Internal server error'
   res.status(status).json({ success: false, message, error: message })
 })
 
-app.listen(PORT, () => console.log(`Server running on ${PORT}`))
+app.listen(PORT, () => logger.info(`Server running on ${PORT}`))

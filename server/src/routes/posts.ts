@@ -1,4 +1,5 @@
 import { Router, Response } from 'express'
+import { logger } from '../lib/logger'
 import { query } from '../db/client'
 import { authMiddleware, optionalAuth } from '../middleware/auth'
 import { validateBody, postSchema } from '../middleware/validate'
@@ -78,7 +79,7 @@ postsRouter.get('/', optionalAuth, async (req: any, res: Response) => {
       },
     })
   } catch (err: any) {
-    console.error('[GET /api/posts]', err?.message)
+    logger.error({ err: err?.message }, '[GET /api/posts]')
     res.status(500).json({ success: false, error: 'Failed to load posts' })
   }
 })
@@ -105,7 +106,7 @@ postsRouter.post(
       const row = await query(`${POST_SELECT} WHERE p.id = $2`, [req.userId, inserted.rows[0].id])
       res.status(201).json({ success: true, data: row.rows[0] })
     } catch (err: any) {
-      console.error('[POST /api/posts]', err?.message)
+      logger.error({ err: err?.message }, '[POST /api/posts]')
       res.status(500).json({ success: false, error: 'Failed to create post' })
     }
   }
@@ -125,7 +126,7 @@ postsRouter.delete('/:id', authMiddleware, async (req: any, res: Response) => {
     }
     res.json({ success: true })
   } catch (err: any) {
-    console.error('[DELETE /api/posts/:id]', err?.message)
+    logger.error({ err: err?.message }, '[DELETE /api/posts/:id]')
     res.status(500).json({ success: false, error: 'Failed to delete post' })
   }
 })
@@ -145,7 +146,7 @@ postsRouter.post('/:id/like', authMiddleware, async (req: any, res: Response) =>
     if (err?.code === '23503') {
       return res.status(404).json({ success: false, error: 'Post not found' })
     }
-    console.error('[POST /api/posts/:id/like]', err?.message)
+    logger.error({ err: err?.message }, '[POST /api/posts/:id/like]')
     res.status(500).json({ success: false, error: 'Failed to like post' })
   }
 })
@@ -158,7 +159,7 @@ postsRouter.delete('/:id/like', authMiddleware, async (req: any, res: Response) 
     await query('DELETE FROM post_likes WHERE post_id = $1 AND user_id = $2', [id, req.userId])
     res.json({ success: true })
   } catch (err: any) {
-    console.error('[DELETE /api/posts/:id/like]', err?.message)
+    logger.error({ err: err?.message }, '[DELETE /api/posts/:id/like]')
     res.status(500).json({ success: false, error: 'Failed to unlike post' })
   }
 })

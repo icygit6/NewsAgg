@@ -8,6 +8,7 @@ export interface User {
   email: string;
   avatar?: string | null;
   role?: string;
+  emailVerified?: boolean;
   created_at?: string;
   last_login?: string;
 }
@@ -17,6 +18,9 @@ export interface AuthResponse {
   token?: string;
   user?: User;
   error?: string;
+  // Generic success/info text from the reset/verify flows.
+  message?: string;
+  alreadyVerified?: boolean;
   // Returned by the Google flow when the account doesn't exist yet, so the
   // signup form can be pre-filled (see AuthPanel.handleGoogleSuccess).
   needsSignup?: boolean;
@@ -85,6 +89,63 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+  },
+
+  // ── Password reset + email verification ───────────────────────────────────
+  forgotPassword: async (email: string): Promise<AuthResponse> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      return res.json();
+    } catch (error) {
+      return { success: false, error: String(error) };
+    }
+  },
+
+  resetPassword: async (token: string, password: string): Promise<AuthResponse> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      });
+      return res.json();
+    } catch (error) {
+      return { success: false, error: String(error) };
+    }
+  },
+
+  verifyEmail: async (token: string): Promise<AuthResponse> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      return res.json();
+    } catch (error) {
+      return { success: false, error: String(error) };
+    }
+  },
+
+  // Bearer-protected: resends the verification email to the signed-in user.
+  resendVerification: async (): Promise<AuthResponse> => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_BASE}/auth/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      return res.json();
+    } catch (error) {
+      return { success: false, error: String(error) };
+    }
   },
 
   loginWithGoogle: async (googleToken: string): Promise<AuthResponse> => {

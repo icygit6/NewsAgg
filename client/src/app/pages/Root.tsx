@@ -3,6 +3,7 @@ import { useApp } from '../contexts/AppContext';
 import { AppShell } from '../components/shell/AppShell';
 import { ProfileSidebar } from '../components/ProfileSidebar';
 import { ScrollToTop } from '../components/ScrollToTop';
+import { VerifyEmailBanner } from '../components/auth/VerifyEmailBanner';
 
 export function Root() {
   const { isDark } = useApp();
@@ -19,6 +20,8 @@ export function Root() {
         backgroundAttachment: 'fixed',
       }}
     >
+      <VerifyEmailBanner />
+
       <AppShell>
         <Outlet />
       </AppShell>

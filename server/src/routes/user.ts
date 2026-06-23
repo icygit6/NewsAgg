@@ -1,4 +1,5 @@
 import { Router, Response } from 'express'
+import { logger } from '../lib/logger'
 import { authMiddleware } from '../middleware/auth'
 
 // Mem0-backed personalization. mem0 is imported lazily inside handlers so a
@@ -13,7 +14,7 @@ userRouter.get('/preferences', async (req: any, res: Response) => {
     const topics = await getPersonalizedTopics(String(req.userId))
     res.json({ success: true, data: { topics } })
   } catch (err: any) {
-    console.error('[GET /api/user/preferences]', err?.message)
+    logger.error({ err: err?.message }, '[GET /api/user/preferences]')
     res.json({ success: true, data: { topics: [] } })
   }
 })
@@ -26,7 +27,7 @@ userRouter.post('/reading-history', async (req: any, res: Response) => {
     await saveUserInterest(String(req.userId), { topic, sentiment, keywords: keywords || [] })
     res.json({ success: true })
   } catch (err: any) {
-    console.error('[POST /api/user/reading-history]', err?.message)
+    logger.error({ err: err?.message }, '[POST /api/user/reading-history]')
     res.json({ success: false })
   }
 })

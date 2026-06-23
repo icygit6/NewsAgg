@@ -47,6 +47,7 @@ export function PostComposer({ attachId, onAttachClear, autoFocus = false }: Pos
         <img src={avatarSrc} alt="" className="w-9 h-9 rounded-full object-cover bg-slate-300 shrink-0" />
         <div className="flex-1 min-w-0">
           <textarea
+            name="post-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={t.whatsHappening}

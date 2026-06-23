@@ -20,7 +20,9 @@ export function SearchBox() {
     >
       <Search size={16} className={isDark ? 'text-slate-500' : 'text-slate-400'} />
       <input
-        type="text"
+        type="search"
+        name="search"
+        autoComplete="off"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onKeyDown={handleKeyDown}
