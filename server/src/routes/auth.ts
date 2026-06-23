@@ -21,6 +21,13 @@ import {
   VERIFY_TOKEN_TTL_MS,
 } from '../lib/tokens'
 import { sendPasswordResetEmail, sendVerificationEmail } from '../services/mailer'
+import {
+  requireCaptcha,
+  loginCaptchaGate,
+  loginNeedsCaptcha,
+  recordLoginFailure,
+  clearLoginFailures,
+} from '../middleware/captcha'
 
 // Ports server.js /auth routes against the live `users` table
 // (integer id, `password` column). Response shape: { success, token, user, error? }.
@@ -61,7 +68,11 @@ async function issueToken(userId: number | string, kind: 'reset' | 'verify', ttl
 }
 
 // POST /auth/register
-authRouter.post('/register', validateBody(registerSchema), async (req: Request, res: Response) => {
+authRouter.post(
+  '/register',
+  requireCaptcha,
+  validateBody(registerSchema),
+  async (req: Request, res: Response) => {
   try {
     const { email, username, password } = req.body
 
@@ -97,43 +108,63 @@ authRouter.post('/register', validateBody(registerSchema), async (req: Request, 
     logger.error({ err: error }, 'Register error')
     res.status(500).json({ success: false, error: 'Registration failed' })
   }
-})
-
-// POST /auth/login
-authRouter.post('/login', validateBody(loginSchema), async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body
-
-    const result = await query(
-      'SELECT id, email, username, password, avatar, email_verified FROM users WHERE email = $1',
-      [email]
-    )
-    if (result.rows.length === 0) {
-      return res.status(401).json({ success: false, error: 'User not found' })
-    }
-
-    const user = result.rows[0]
-    if (!user.password) {
-      return res.status(401).json({ success: false, error: 'This account signs in with Google' })
-    }
-    const isPasswordValid = await bcrypt.compare(password, user.password)
-    if (!isPasswordValid) {
-      return res.status(401).json({ success: false, error: 'Invalid password' })
-    }
-
-    query('UPDATE users SET last_login = now() WHERE id = $1', [user.id]).catch(() => {})
-    const token = signToken(user.id)
-    res.json({ success: true, token, user: shapeUser(user) })
-  } catch (error: any) {
-    logger.error({ err: error }, 'Login error')
-    res.status(500).json({ success: false, error: 'Login failed' })
   }
-})
+)
+
+// POST /auth/login — `loginCaptchaGate` only challenges once this IP has tripped
+// the failed-login threshold; below it, sign-in stays frictionless. The 401s
+// echo `captchaRequired` so the form knows when to render the widget.
+authRouter.post(
+  '/login',
+  loginCaptchaGate,
+  validateBody(loginSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body
+
+      const result = await query(
+        'SELECT id, email, username, password, avatar, email_verified FROM users WHERE email = $1',
+        [email]
+      )
+      if (result.rows.length === 0) {
+        recordLoginFailure(req)
+        return res.status(401).json({
+          success: false,
+          error: 'User not found',
+          captchaRequired: loginNeedsCaptcha(req),
+        })
+      }
+
+      const user = result.rows[0]
+      if (!user.password) {
+        return res.status(401).json({ success: false, error: 'This account signs in with Google' })
+      }
+      const isPasswordValid = await bcrypt.compare(password, user.password)
+      if (!isPasswordValid) {
+        recordLoginFailure(req)
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid password',
+          captchaRequired: loginNeedsCaptcha(req),
+        })
+      }
+
+      clearLoginFailures(req)
+      query('UPDATE users SET last_login = now() WHERE id = $1', [user.id]).catch(() => {})
+      const token = signToken(user.id)
+      res.json({ success: true, token, user: shapeUser(user) })
+    } catch (error: any) {
+      logger.error({ err: error }, 'Login error')
+      res.status(500).json({ success: false, error: 'Login failed' })
+    }
+  }
+)
 
 // POST /auth/forgot-password — always answers 200 with a generic message so it
 // can't be used to enumerate which emails have accounts.
 authRouter.post(
   '/forgot-password',
+  requireCaptcha,
   validateBody(forgotPasswordSchema),
   async (req: Request, res: Response) => {
     const generic = {
@@ -249,14 +280,31 @@ authRouter.post('/google', validateBody(googleAuthSchema), async (req: Request, 
   try {
     const { token } = req.body
 
-    const { OAuth2Client } = await import('google-auth-library')
-    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    })
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    if (!clientId) {
+      logger.error('GOOGLE_CLIENT_ID is not set — cannot verify Google sign-in')
+      return res
+        .status(500)
+        .json({ success: false, error: 'Google sign-in is not configured on the server' })
+    }
 
-    const payload = ticket.getPayload()
+    const { OAuth2Client } = await import('google-auth-library')
+    const googleClient = new OAuth2Client(clientId)
+    let payload
+    try {
+      // Throws on an expired token, a bad signature, or an audience mismatch
+      // (the token was issued for a different GOOGLE_CLIENT_ID than the server's).
+      const ticket = await googleClient.verifyIdToken({ idToken: token, audience: clientId })
+      payload = ticket.getPayload()
+    } catch (verifyErr) {
+      logger.warn({ err: verifyErr }, 'Google ID token verification failed')
+      return res.status(401).json({
+        success: false,
+        error:
+          'Could not verify your Google sign-in — the token is expired or was issued for a different app. Try again.',
+      })
+    }
+
     if (!payload) {
       return res.status(401).json({ success: false, error: 'Google authentication failed' })
     }
