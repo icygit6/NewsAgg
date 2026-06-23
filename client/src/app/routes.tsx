@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'profile',
-        handle: { mobileFooter: true },
+        handle: { hideRightRail: true, mobileFooter: true },
         lazy: async () => ({ Component: (await import('./pages/ProfilePage')).ProfilePage }),
       },
       {

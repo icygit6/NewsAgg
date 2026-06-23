@@ -26,6 +26,10 @@ export interface AuthResponse {
   needsSignup?: boolean;
   email?: string;
   username?: string;
+  // Set by the server when a CAPTCHA is now required (always on register/forgot;
+  // on login only after repeated failures). The form renders the widget in
+  // response.
+  captchaRequired?: boolean;
 }
 
 export interface AccountResponse {
@@ -60,12 +64,17 @@ async function accountFetch(path: string, init: RequestInit = {}): Promise<Accou
 }
 
 export const authService = {
-  register: async (email: string, username: string, password: string): Promise<AuthResponse> => {
+  register: async (
+    email: string,
+    username: string,
+    password: string,
+    captchaToken?: string,
+  ): Promise<AuthResponse> => {
     try {
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, password })
+        body: JSON.stringify({ email, username, password, captchaToken })
       });
       return res.json();
     } catch (error) {
@@ -73,12 +82,12 @@ export const authService = {
     }
   },
 
-  login: async (email: string, password: string): Promise<AuthResponse> => {
+  login: async (email: string, password: string, captchaToken?: string): Promise<AuthResponse> => {
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, captchaToken })
       });
       return res.json();
     } catch (error) {
@@ -92,12 +101,12 @@ export const authService = {
   },
 
   // ── Password reset + email verification ───────────────────────────────────
-  forgotPassword: async (email: string): Promise<AuthResponse> => {
+  forgotPassword: async (email: string, captchaToken?: string): Promise<AuthResponse> => {
     try {
       const res = await fetch(`${API_BASE}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, captchaToken }),
       });
       return res.json();
     } catch (error) {

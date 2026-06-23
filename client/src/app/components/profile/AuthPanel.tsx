@@ -3,6 +3,7 @@ import { Eye, EyeOff, Info, LogIn, UserPlus, Mail } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useApp } from '../../contexts/AppContext';
 import { authService } from '../../services/authService';
+import { Turnstile, turnstileEnabled } from '../auth/Turnstile';
 
 interface AuthPanelProps {
   isDark: boolean;
@@ -25,6 +26,21 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
   // calm info box, not an error, and cleared as soon as the user types.
   const [info, setInfo] = useState('');
   const [pendingGoogleSignup, setPendingGoogleSignup] = useState(false);
+  // CAPTCHA: the latest Turnstile token, whether login has tripped the adaptive
+  // gate, and a key that remounts the widget for a fresh (single-use) token.
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [loginCaptchaRequired, setLoginCaptchaRequired] = useState(false);
+  const [captchaKey, setCaptchaKey] = useState(0);
+
+  // Register + forgot always challenge; login only after repeated failures.
+  const showCaptcha =
+    turnstileEnabled() &&
+    (mode === 'signup' || mode === 'forgot' || (mode === 'login' && loginCaptchaRequired));
+
+  const resetCaptcha = () => {
+    setCaptchaToken('');
+    setCaptchaKey((k) => k + 1);
+  };
 
   const finish = () => {
     setEmail('');
@@ -32,6 +48,7 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
     setPassword('');
     setError('');
     setInfo('');
+    resetCaptcha();
     onAuthenticated?.();
   };
 
@@ -69,9 +86,13 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       setError('Please fill in all fields');
       return;
     }
+    if (showCaptcha && !captchaToken) {
+      setError('Please complete the CAPTCHA');
+      return;
+    }
     setLoading(true);
     setError('');
-    const result = await authService.login(email, password);
+    const result = await authService.login(email, password, captchaToken);
     if (result.success && result.user && result.token) {
       authService.setToken(result.token);
       authService.setUser(result.user);
@@ -79,6 +100,9 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       finish();
     } else {
       setError(result.error || 'Login failed');
+      // Server tells us once too many failures have tripped the adaptive gate.
+      if (result.captchaRequired) setLoginCaptchaRequired(true);
+      resetCaptcha(); // the token (if any) was single-use — get a fresh one
     }
     setLoading(false);
   };
@@ -88,11 +112,20 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       setError('Please enter your email');
       return;
     }
+    if (showCaptcha && !captchaToken) {
+      setError('Please complete the CAPTCHA');
+      return;
+    }
     setLoading(true);
     setError('');
     setInfo('');
-    const result = await authService.forgotPassword(email);
+    const result = await authService.forgotPassword(email, captchaToken);
     setLoading(false);
+    resetCaptcha();
+    if (result.success === false) {
+      setError(result.error || 'Could not send reset link');
+      return;
+    }
     // Always a generic, non-enumerating confirmation from the server.
     setInfo(result.message || 'If an account exists for that email, a reset link is on its way.');
   };
@@ -106,9 +139,13 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       setError('Password must be at least 8 characters');
       return;
     }
+    if (showCaptcha && !captchaToken) {
+      setError('Please complete the CAPTCHA');
+      return;
+    }
     setLoading(true);
     setError('');
-    const result = await authService.register(email, username, password);
+    const result = await authService.register(email, username, password, captchaToken);
     if (result.success && result.user && result.token) {
       authService.setToken(result.token);
       authService.setUser(result.user);
@@ -116,6 +153,7 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       finish();
     } else {
       setError(result.error || 'Signup failed');
+      resetCaptcha();
     }
     setLoading(false);
   };
@@ -224,6 +262,10 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
         </div>
       )}
 
+      {showCaptcha && (
+        <Turnstile key={captchaKey} onToken={setCaptchaToken} isDark={isDark} />
+      )}
+
       <button
         onClick={mode === 'login' ? handleLogin : mode === 'signup' ? handleSignup : handleForgot}
         disabled={loading}
@@ -239,10 +281,14 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
         <div className="mb-4">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
-            onError={() => setError(mode === 'login' ? 'Google login failed' : 'Google signup failed')}
+            onError={() =>
+              setError(
+                'Google sign-in was blocked or cancelled. Allow pop-ups for this site, and make sure this app is authorized in Google Cloud (origin + test user).',
+              )
+            }
             theme={isDark ? 'filled_black' : 'outline'}
             size="large"
-            width="100%"
+            width="300"
             text={mode === 'login' ? 'signin_with' : 'signup_with'}
           />
         </div>
