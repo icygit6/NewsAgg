@@ -8,14 +8,11 @@ const PulseRail = lazy(() =>
 const InsightsRail = lazy(() =>
   import('./InsightsRail').then((m) => ({ default: m.InsightsRail }))
 );
-const MarketsWidget = lazy(() =>
-  import('../widgets/MarketsWidget').then((m) => ({ default: m.MarketsWidget }))
-);
 
 type RailTab = 'pulse' | 'insights';
 
 export function RightRail() {
-  const { t, isDark, selectedCategory } = useApp();
+  const { t, isDark } = useApp();
   const [tab, setTab] = useState<RailTab>('insights');
 
   const tabButton = (key: RailTab, label: string) => (
@@ -47,11 +44,6 @@ export function RightRail() {
           isDark ? 'border-slate-800/50' : 'border-slate-200/50'
         }`}
       >
-        {selectedCategory === 'business' && (
-          <Suspense fallback={null}>
-            <MarketsWidget />
-          </Suspense>
-        )}
         <div
           className={`flex gap-1 rounded-full border p-1 w-full ${
             isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
