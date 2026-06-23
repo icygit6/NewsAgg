@@ -223,6 +223,8 @@ export function ArticleChat({ article, isDark }: ArticleChatProps) {
 
               <div className={`flex items-center gap-2 px-4 py-3 border-t ${isDark ? 'border-slate-700/60' : 'border-gray-100'}`}>
                 <input
+                  name="chat-message"
+                  autoComplete="off"
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}

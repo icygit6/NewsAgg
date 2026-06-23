@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Info, LogIn, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Info, LogIn, UserPlus, Mail } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useApp } from '../../contexts/AppContext';
 import { authService } from '../../services/authService';
@@ -14,7 +14,7 @@ interface AuthPanelProps {
  * 585-line ProfileSidebar so the drawer stays slim). */
 export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
   const { t, setUser } = useApp();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -83,6 +83,20 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
     setLoading(false);
   };
 
+  const handleForgot = async () => {
+    if (!email) {
+      setError('Please enter your email');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setInfo('');
+    const result = await authService.forgotPassword(email);
+    setLoading(false);
+    // Always a generic, non-enumerating confirmation from the server.
+    setInfo(result.message || 'If an account exists for that email, a reset link is on its way.');
+  };
+
   const handleSignup = async () => {
     if (!email || !username || !password) {
       setError('Please fill in all fields');
@@ -116,7 +130,7 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
   return (
     <div>
       <h3 className={`font-bold text-lg mb-4 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
-        {mode === 'login' ? 'Sign In' : 'Create Account'}
+        {mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
       </h3>
 
       <div className="space-y-4 mb-6">
@@ -125,6 +139,8 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
             <label className={labelClass}>Username</label>
             <input
               type="text"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="your username"
@@ -136,36 +152,63 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
           <label className={labelClass}>Email</label>
           <input
             type="email"
+            name="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             className={inputClass}
           />
         </div>
-        <div>
-          <label className={labelClass}>Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (info) setInfo('');
-              }}
-              placeholder="••••••••"
-              className={`${inputClass} pr-11`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((p) => !p)}
-              aria-label={showPassword ? t.hidePassword : t.showPassword}
-              title={showPassword ? t.hidePassword : t.showPassword}
-              className={`absolute right-3.5 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
+        {mode !== 'forgot' && (
+          <div>
+            <label className={labelClass}>Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (info) setInfo('');
+                }}
+                placeholder="••••••••"
+                className={`${inputClass} pr-11`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                aria-label={showPassword ? t.hidePassword : t.showPassword}
+                title={showPassword ? t.hidePassword : t.showPassword}
+                className={`absolute right-3.5 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {mode === 'login' && (
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('forgot');
+                    setError('');
+                    setInfo('');
+                  }}
+                  className={`text-xs font-medium transition ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
+
+        {mode === 'forgot' && (
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+            Enter your email and we'll send you a link to reset your password.
+          </p>
+        )}
       </div>
 
       {info && !error && (
@@ -182,17 +225,17 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       )}
 
       <button
-        onClick={mode === 'login' ? handleLogin : handleSignup}
+        onClick={mode === 'login' ? handleLogin : mode === 'signup' ? handleSignup : handleForgot}
         disabled={loading}
         className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-pink-500 text-white font-semibold hover:from-cyan-600 hover:to-pink-600 transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
       >
-        {mode === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />}
+        {mode === 'login' ? <LogIn size={18} /> : mode === 'signup' ? <UserPlus size={18} /> : <Mail size={18} />}
         {loading
-          ? mode === 'login' ? 'Signing in...' : 'Creating account...'
-          : mode === 'login' ? 'Sign In' : 'Create Account'}
+          ? mode === 'login' ? 'Signing in...' : mode === 'signup' ? 'Creating account...' : 'Sending...'
+          : mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send reset link'}
       </button>
 
-      {!(mode === 'signup' && pendingGoogleSignup) && (
+      {mode !== 'forgot' && !(mode === 'signup' && pendingGoogleSignup) && (
         <div className="mb-4">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
@@ -206,19 +249,21 @@ export function AuthPanel({ isDark, onAuthenticated }: AuthPanelProps) {
       )}
 
       <div className="text-center">
-        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>
-          {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
-        </p>
+        {mode !== 'forgot' && (
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>
+            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+          </p>
+        )}
         <button
           onClick={() => {
-            setMode(mode === 'login' ? 'signup' : 'login');
+            setMode(mode === 'login' ? 'signup' : mode === 'signup' ? 'login' : 'login');
             setError('');
             setInfo('');
             setPendingGoogleSignup(false);
           }}
           className={`text-sm font-medium transition ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
         >
-          {mode === 'login' ? 'Create one' : 'Sign in'}
+          {mode === 'login' ? 'Create one' : mode === 'signup' ? 'Sign in' : '← Back to sign in'}
         </button>
       </div>
     </div>

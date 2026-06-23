@@ -88,7 +88,7 @@ export function AccountSettings({ isDark }: AccountSettingsProps) {
         <h3 className={heading}><UserPen size={14} className="text-cyan-500" />{t.editProfile}</h3>
         <label className={labelClass}>{t.usernameLabel}</label>
         <div className="flex gap-2">
-          <input value={username} onChange={(e) => setUsername(e.target.value)} className={inputClass} maxLength={30} />
+          <input name="username" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} className={inputClass} maxLength={30} />
           <button
             onClick={saveProfile}
             disabled={savingProfile || username.trim().length < 3 || username.trim() === user?.username}
@@ -109,6 +109,7 @@ export function AccountSettings({ isDark }: AccountSettingsProps) {
             <label className={labelClass}>{t.currentPassword}</label>
             <input
               type={showPasswords ? 'text' : 'password'}
+              name="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className={inputClass}
@@ -120,6 +121,7 @@ export function AccountSettings({ isDark }: AccountSettingsProps) {
             <div className="relative">
               <input
                 type={showPasswords ? 'text' : 'password'}
+                name="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className={inputClass}

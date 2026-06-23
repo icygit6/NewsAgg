@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { useApp } from '../../contexts/AppContext';
 import { useBusinessTrend } from '../../hooks/useStats';
+import { ChartFrame } from '../ui/ChartFrame';
 
 /** 14-day Business pulse under the feed header when the Business category is
  * active: bars = articles/day, line = average sentiment polarity (−1…+1).
@@ -35,7 +36,7 @@ export function BusinessTrendChart() {
           {t.articlesPerDay} · {t.avgTone}
         </span>
       </div>
-      <div className="h-[140px] w-full">
+      <ChartFrame className="h-[140px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -22 }}>
             <XAxis
@@ -80,7 +81,7 @@ export function BusinessTrendChart() {
             />
           </ComposedChart>
         </ResponsiveContainer>
-      </div>
+      </ChartFrame>
     </div>
   );
 }

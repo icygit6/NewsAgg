@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { logger } from '../lib/logger'
 
 // Server-side translation service. Gemini 2.0 Flash is the primary provider;
 // Lingva (no API key) is the fallback. GEMINI_API_KEY is read from the server
@@ -149,7 +150,7 @@ export async function translateArticleFields(
       const g = await translateWithGemini(fields, targetLang)
       return { ...g, provider: 'gemini' }
     } catch (err) {
-      console.error('[translate] Gemini failed, falling back to Lingva:', (err as Error).message)
+      logger.error({ err: (err as Error).message }, '[translate] Gemini failed, falling back to Lingva:')
     }
   }
 
@@ -157,7 +158,7 @@ export async function translateArticleFields(
     const l = await translateWithLingva(fields, targetLang)
     return { ...l, provider: 'lingva' }
   } catch (err) {
-    console.error('[translate] Lingva failed:', (err as Error).message)
+    logger.error({ err: (err as Error).message }, '[translate] Lingva failed:')
   }
 
   return { ...fields, provider: 'none' }

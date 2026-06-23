@@ -47,6 +47,7 @@ export function NewsCard({ article, index }: NewsCardProps) {
   // unmapped topic renders a neutral badge instead of an `undefined` class.
   const categoryClass = CATEGORY_BADGE_CLASS[TOPIC_TO_CATEGORY[article.topic]] ?? 'bg-slate-600 text-white';
   const preview = article.aiSummary || article.description || 'No summary available';
+  const categoryClass = CATEGORY_BADGE_CLASS[TOPIC_TO_CATEGORY[article.topic]];
   const secondaryImage = article.images.find((image) => !image.isPrimary)?.url;
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
@@ -95,6 +96,9 @@ export function NewsCard({ article, index }: NewsCardProps) {
                 <button
                   onClick={handleBookmarkClick}
                   disabled={isBookmarking}
+                  aria-label={isBookmarked ? t.bookmarked : t.bookmark}
+                  aria-pressed={isBookmarked}
+                  title={isBookmarked ? t.bookmarked : t.bookmark}
                   className={`inline-flex items-center justify-center p-2 rounded-full transition-all backdrop-blur-sm disabled:opacity-50 ${
                     isBookmarked
                       ? 'bg-amber-500/90 text-white'

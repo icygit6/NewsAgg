@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { logger } from '../lib/logger'
 
 // Uses Node's built-in global fetch (Node 18+). CLAUDE.md imported node-fetch
 // v3, but that package is ESM-only and breaks under this CommonJS build.
@@ -65,7 +66,7 @@ quotesRouter.get('/random', async (_req: Request, res: Response) => {
     cache = { date: today, quote }
     return res.json({ success: true, data: quote })
   } catch (err: any) {
-    console.error('[GET /api/quotes/random]', err.message)
+    logger.error({ err: err.message }, '[GET /api/quotes/random]')
     // Serve a stale quote over nothing if a previous day's fetch succeeded.
     if (cache) return res.json({ success: true, data: cache.quote })
     return res.json({ success: false, data: { quote: '', author: '' } })
@@ -88,7 +89,7 @@ quotesRouter.get('/list', async (_req: Request, res: Response) => {
     listCache = { date: today, quotes }
     return res.json({ success: true, data: quotes })
   } catch (err: any) {
-    console.error('[GET /api/quotes/list]', err.message)
+    logger.error({ err: err.message }, '[GET /api/quotes/list]')
     // Serve a stale batch if we have one; otherwise fall back to the single
     // daily quote so the widget still renders something.
     if (listCache) return res.json({ success: true, data: listCache.quotes })

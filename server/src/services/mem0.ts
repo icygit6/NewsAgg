@@ -1,4 +1,5 @@
 // Mem0 personalization, lazily initialised and fully fault-tolerant: if the
+import { logger } from '../lib/logger'
 // SDK or API call fails, every function degrades to a safe default instead of
 // throwing, so the /api/user routes never 500 on personalization errors.
 
@@ -30,7 +31,7 @@ export async function saveUserInterest(userId: string, article: {
       content: `User read a ${article.sentiment || 'neutral'} article about ${article.topic || 'general news'}. Keywords: ${keywords}`
     }], { user_id: userId })
   } catch (err: any) {
-    console.error('[mem0.saveUserInterest]', err?.message)
+    logger.error({ err: err?.message }, '[mem0.saveUserInterest]')
   }
 }
 
@@ -39,7 +40,7 @@ export async function getUserPreferences(userId: string): Promise<any[]> {
     const mem0 = await getClient()
     return await mem0.getAll({ user_id: userId })
   } catch (err: any) {
-    console.error('[mem0.getUserPreferences]', err?.message)
+    logger.error({ err: err?.message }, '[mem0.getUserPreferences]')
     return []
   }
 }
@@ -57,7 +58,7 @@ export async function getPersonalizedTopics(userId: string): Promise<string[]> {
     })
     return Array.from(topics)
   } catch (err: any) {
-    console.error('[mem0.getPersonalizedTopics]', err?.message)
+    logger.error({ err: err?.message }, '[mem0.getPersonalizedTopics]')
     return []
   }
 }

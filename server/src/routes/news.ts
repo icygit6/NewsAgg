@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { logger } from '../lib/logger'
 import { query } from '../db/client'
 import { TtlCache } from '../lib/ttlCache'
 
@@ -96,7 +97,7 @@ newsRouter.get('/', async (req: Request, res: Response) => {
 
     res.json(body)
   } catch (err: any) {
-    console.error('[GET /api/news-from-db]', err.message)
+    logger.error({ err: err.message }, '[GET /api/news-from-db]')
     res.status(500).json({ success: false, message: 'Server Database Error' })
   }
 })

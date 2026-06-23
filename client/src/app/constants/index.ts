@@ -59,6 +59,13 @@ export const CATEGORY_BADGE_CLASS: Record<Category, string> = {
   lifestyle: 'bg-fuchsia-600 text-white',
   science: 'bg-teal-600 text-white',
   climate: 'bg-green-600 text-white',
+  health: 'bg-emerald-700 text-white',
+  travel: 'bg-amber-500 text-white',
+  business: 'bg-indigo-600 text-white',
+  world: 'bg-slate-600 text-white',
+  politics: 'bg-sky-600 text-white',
+  entertainment: 'bg-fuchsia-600 text-white',
+  science: 'bg-teal-700 text-white',
 };
 
 export const TOPIC_BADGE_CLASS: Record<CategoryTopic, string> = {

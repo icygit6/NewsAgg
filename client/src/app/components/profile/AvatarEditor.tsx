@@ -85,7 +85,7 @@ export function AvatarEditor({ isDark }: AvatarEditorProps) {
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
         </button>
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+        <input ref={fileInputRef} type="file" name="avatar" accept="image/*" onChange={handleFile} className="hidden" />
       </div>
       {error && <p className="mt-2 text-xs text-rose-500">{error}</p>}
       {saved && !error && <p className="mt-2 text-xs text-emerald-500">{t.avatarUpdated}</p>}
