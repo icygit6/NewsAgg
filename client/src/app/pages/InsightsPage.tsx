@@ -8,6 +8,7 @@ import { LiveView } from '../components/sentiment/LiveView';
 import { TrendingKeywords } from '../components/sentiment/TrendingKeywords';
 import { LiveEngagement } from '../components/sentiment/LiveEngagement';
 import { DatasetStats } from '../components/sentiment/DatasetStats';
+import { BusinessInsights } from '../components/widgets/BusinessInsights';
 
 export function InsightsPage() {
   const { t, isDark, selectedCategory } = useApp();
@@ -33,6 +34,7 @@ export function InsightsPage() {
         {t.insights}
       </h1>
       <div className="space-y-4">
+        <BusinessInsights />
         <SentimentChart />
         <LiveView articles={latest?.articles ?? []} categoryLabel={categoryLabel} />
         <TrendingKeywords />

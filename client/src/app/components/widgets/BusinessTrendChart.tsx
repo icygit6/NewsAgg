@@ -11,9 +11,10 @@ import { useApp } from '../../contexts/AppContext';
 import { useBusinessTrend } from '../../hooks/useStats';
 import { ChartFrame } from '../ui/ChartFrame';
 
-/** 14-day Business pulse under the feed header when the Business category is
- * active: bars = articles/day, line = average sentiment polarity (−1…+1).
- * Loaded lazily — recharts stays out of the main bundle. */
+/** 14-day Business pulse shown in the Insights area when the Business category
+ * is active: bars = articles/day, line = average sentiment polarity (−1…+1).
+ * Loaded lazily — recharts stays out of the main bundle. Outer spacing is left
+ * to the parent (the Insights `space-y-4` flow). */
 export function BusinessTrendChart() {
   const { t, isDark } = useApp();
   const { data = [] } = useBusinessTrend(14);
@@ -24,7 +25,7 @@ export function BusinessTrendChart() {
 
   return (
     <div
-      className={`mx-4 mt-4 rounded-2xl border p-4 ${
+      className={`rounded-2xl border p-4 ${
         isDark ? 'bg-slate-900/70 border-slate-800' : 'bg-white border-slate-200'
       }`}
     >

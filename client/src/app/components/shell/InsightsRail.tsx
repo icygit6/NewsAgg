@@ -8,6 +8,7 @@ import { LiveView } from '../sentiment/LiveView';
 import { TrendingKeywords } from '../sentiment/TrendingKeywords';
 import { LiveEngagement } from '../sentiment/LiveEngagement';
 import { DatasetStats } from '../sentiment/DatasetStats';
+import { BusinessInsights } from '../widgets/BusinessInsights';
 
 /** Compact analytics for the right rail's Insights tab — the full set from
  * the old SentimentPanel: sentiment donut, live view, trending keywords,
@@ -34,6 +35,7 @@ export function InsightsRail() {
 
   return (
     <div className="space-y-4 w-full">
+      <BusinessInsights />
       <SentimentChart />
       <LiveView articles={latest?.articles ?? []} categoryLabel={categoryLabel} />
       <TrendingKeywords />
