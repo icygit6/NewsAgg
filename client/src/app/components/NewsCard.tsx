@@ -46,8 +46,6 @@ export function NewsCard({ article, index }: NewsCardProps) {
   // Fallback guards legacy/unknown topics (e.g. pre-migration 'Travel') so an
   // unmapped topic renders a neutral badge instead of an `undefined` class.
   const categoryClass = CATEGORY_BADGE_CLASS[TOPIC_TO_CATEGORY[article.topic]] ?? 'bg-slate-600 text-white';
-  const preview = article.aiSummary || article.description || 'No summary available';
-  const categoryClass = CATEGORY_BADGE_CLASS[TOPIC_TO_CATEGORY[article.topic]];
   const secondaryImage = article.images.find((image) => !image.isPrimary)?.url;
 
   const handleBookmarkClick = (e: React.MouseEvent) => {

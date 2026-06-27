@@ -163,8 +163,14 @@ def enrich_article(item: dict, spec: SourceSpec) -> Optional[dict]:
         # Language first — sentiment/summary/toxicity are routed by it
         # (FinBERT/BART/toxic-bert are English-only; XLM-R models handle the rest).
         language = nlp.detect_language(text)
-        if spec.language != "en" and (not language or language == "en"):
-            language = spec.language          # trust the spec (e.g. yahoo_tw -> zh-TW)
+        # langdetect is unreliable on CJK — it frequently tags Traditional Chinese
+        # as 'ko'/'ja'/'zh-cn' and returns lowercase codes ('zh-tw'). For a source
+        # that declares a fixed non-English language, trust the spec UNLESS detection
+        # is confidently English (a rare English wire article in a zh section should
+        # still route to the English-only models). This also normalises casing
+        # (langdetect 'zh-tw' -> canonical spec 'zh-TW').
+        if spec.language != "en" and not (language or "").startswith("en"):
+            language = spec.language          # e.g. yahoo_tw -> zh-TW
 
         entities = nlp.run_ner(text)
         sentiment = nlp.analyze_sentiment(text, topic, language)

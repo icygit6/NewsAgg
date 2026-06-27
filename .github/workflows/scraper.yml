@@ -10,7 +10,7 @@ on:
       job:
         description: 'Which job to run'
         type: choice
-        options: [scrape, cleanup]
+        options: [scrape, cleanup, backfill-lang]
         default: scrape
       target:
         description: 'Articles per category per source (scrape only, default 20)'
@@ -90,3 +90,26 @@ jobs:
         env:
           NEONDB_URL: ${{ secrets.NEONDB_URL }}
         run: python scraper/cleanup.py --days 45 --commit --vacuum
+
+  # One-off maintenance: normalise Yahoo TW articles mislabelled by langdetect
+  # ('ko'/'zh-tw'/…) to canonical 'zh-TW'. Idempotent — safe to re-run.
+  # Manual only (workflow_dispatch → job = backfill-lang).
+  backfill-lang:
+    if: github.event_name == 'workflow_dispatch' && inputs.job == 'backfill-lang'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # backfill_lang.py only imports core.config + psycopg2 (no ML stack)
+      - name: Install psycopg2
+        run: pip install psycopg2-binary
+
+      - name: Normalise Yahoo TW language codes
+        env:
+          NEONDB_URL: ${{ secrets.NEONDB_URL }}
+        run: python scraper/backfill_lang.py --source yahoo_tw --lang zh-TW --commit
