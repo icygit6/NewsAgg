@@ -10,7 +10,13 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
     setDidError(true)
   }
 
-  const { src, alt, style, className, ...rest } = props
+  const { src, alt, style, className, fetchPriority, ...rest } = props
+  // React 18 doesn't forward the camelCase `fetchPriority` prop to the DOM (that
+  // landed in React 19). Emit the lowercase `fetchpriority` attribute the browser
+  // actually reads, so the LCP hint lands and the "unrecognized prop" warning goes.
+  const priorityAttr: Record<string, string | undefined> = fetchPriority
+    ? { fetchpriority: fetchPriority }
+    : {}
 
   return didError ? (
     <div
@@ -22,6 +28,14 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
       </div>
     </div>
   ) : (
-    <img src={src} alt={alt} className={className} style={style} {...rest} onError={handleError} />
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      {...priorityAttr}
+      {...rest}
+      onError={handleError}
+    />
   )
 }

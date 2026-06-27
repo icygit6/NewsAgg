@@ -60,7 +60,7 @@ export function ProfileSidebar() {
             animate={{ x: 0 }}
             exit={{ x: isMobile ? '100%' : '-100%' }}
             transition={{ type: 'spring', stiffness: 350, damping: 35 }}
-            className={`fixed top-0 bottom-0 z-[70] w-72 flex flex-col shadow-2xl ${
+            className={`fixed top-0 bottom-0 z-[70] w-[344px] max-w-[90vw] flex flex-col shadow-2xl ${
               isMobile ? 'right-0' : 'left-0'
             } ${
               isDark
@@ -81,7 +81,7 @@ export function ProfileSidebar() {
               </button>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto no-scrollbar">
               {user ? (
                 <>
                   {/* Identity card → /profile */}

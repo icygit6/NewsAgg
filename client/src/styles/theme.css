@@ -151,6 +151,15 @@
     display: none;
   }
 
+  /* Hide the scrollbar on opt-in scroll containers (still scrollable). */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
